@@ -20,14 +20,12 @@
  */
 package com.sshtools.sftp;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
@@ -48,7 +46,6 @@ import com.sshtools.ssh.SshClient;
 import com.sshtools.ssh.SshException;
 import com.sshtools.ssh.SshIOException;
 import com.sshtools.ssh.SshSession;
-import com.sshtools.ssh2.Ssh2Client;
 import com.sshtools.ssh2.Ssh2Session;
 import com.sshtools.util.EOLProcessor;
 import com.sshtools.util.IOUtil;
@@ -505,7 +502,7 @@ public class SftpClient implements Client {
 	 * contains these. If a device uses roots like this, and folder traversal on
 	 * the device is required then it must have its root stored in customRoots
 	 */
-	private Vector customRoots = new Vector();
+	private Vector<String> customRoots = new Vector<String>();
 
 	/**
 	 * Add a custom file system root path such as "flash:"
@@ -533,9 +530,9 @@ public class SftpClient implements Client {
 	 *         <em>false</em> otherwise
 	 */
 	private boolean startsWithCustomRoot(String path) {
-		for (Enumeration it = customRoots.elements(); it != null
+		for (Enumeration<String> it = customRoots.elements(); it != null
 				&& it.hasMoreElements();) {
-			if (path.startsWith((String) it.nextElement())) {
+			if (path.startsWith(it.nextElement())) {
 				return true;
 			}
 		}
@@ -595,10 +592,9 @@ public class SftpClient implements Client {
 		// #ifdef DEBUG
 		EventLog.LogDebugEvent(this, "Creating dir " + dir);
 		// #endif
-		SftpFileAttributes attrs = null;
-		try {
-			attrs = sftp.getAttributes(actual);
 
+		try {
+			sftp.getAttributes(actual);
 		} catch (SftpStatusException ex) {
 			// only create the directory if catch an exception with code file
 			// not found
@@ -725,15 +721,15 @@ public class SftpClient implements Client {
 		// #endif
 
 		SftpFile file = sftp.openDirectory(actual);
-		Vector children = new Vector();
+		Vector<SftpFile> children = new Vector<SftpFile>();
 		while (sftp.listChildren(file, children) > -1) {
 			;
 		}
 		file.close();
 		SftpFile[] files = new SftpFile[children.size()];
 		int index = 0;
-		for (Enumeration e = children.elements(); e.hasMoreElements();) {
-			files[index++] = (SftpFile) e.nextElement();
+		for (Enumeration<SftpFile> e = children.elements(); e.hasMoreElements();) {
+			files[index++] = e.nextElement();
 		}
 		return files;
 	}
@@ -965,6 +961,7 @@ public class SftpClient implements Client {
 	 * @throws SshException
 	 * @throws TransferCancelledException
 	 */
+	@SuppressWarnings("resource")
 	public SftpFileAttributes get(String remote, String local,
 			FileTransferProgress progress, boolean resume)
 			throws FileNotFoundException, SftpStatusException, SshException,
@@ -1060,8 +1057,7 @@ public class SftpClient implements Client {
 
 				}
 
-				out = EOLProcessor.createOutputStream(inputStyle, outputStyle,
-						out);
+				out = EOLProcessor.createOutputStream(inputStyle, outputStyle, out);
 			}
 
 			attrs = get(remote, out, progress, position);
@@ -1296,7 +1292,7 @@ public class SftpClient implements Client {
 		// match with files using remote as regular expression.
 		SftpFile[] matchedFiles = matchRemoteFiles(remote);
 
-		Vector retrievedFiles = new Vector();
+		Vector<SftpFile> retrievedFiles = new Vector<SftpFile>();
 		// call get for each matched file, append the files attributes to a
 		// vector to be returned at the end
 		// call the correct get method depending on the get method that called
@@ -1726,14 +1722,23 @@ public class SftpClient implements Client {
 			}
 
 			if (resume) {
-				if (localPath.length() <= attrs.getSize().longValue())
+				if (localPath.length() <= attrs.getSize().longValue()) {
+					try {
+						in.close();
+					} catch (IOException e) {
+					}
 					throw new SftpStatusException(
 							SftpStatusException.INVALID_RESUME_STATE,
 							"The remote file size is greater than the local file");
+				}
 				try {
 					position = attrs.getSize().longValue();
 					in.skip(position);
 				} catch (IOException ex) {
+					try {
+						in.close();
+					} catch (IOException e) {
+					}
 					throw new SftpStatusException(
 							SftpStatusException.SSH_FX_NO_SUCH_FILE,
 							ex.getMessage());

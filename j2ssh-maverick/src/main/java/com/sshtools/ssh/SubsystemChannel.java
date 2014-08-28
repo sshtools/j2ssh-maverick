@@ -48,7 +48,7 @@ public class SubsystemChannel {
 
   DataInputStream in;
   DataOutputStream out;
-  Vector packets = new Vector();
+  Vector<Packet> packets = new Vector<Packet>();
   int maximumPacketSize = Integer.parseInt(System.getProperty("maverick.sftp.maxPacketSize", "1024000"));
   
   protected SshChannel channel;

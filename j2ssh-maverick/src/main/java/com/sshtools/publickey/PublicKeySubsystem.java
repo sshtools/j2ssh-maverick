@@ -74,12 +74,18 @@ public class PublicKeySubsystem
 
       ByteArrayReader response = new ByteArrayReader(nextMessage());
 
-      //String v = 
-      response.readString();
-
-      int serverVersion = (int)response.readInt();
-      version = Math.min(serverVersion, VERSION_1);
-
+      try {
+	      //String v = 
+	      response.readString();
+	
+	      int serverVersion = (int)response.readInt();
+	      version = Math.min(serverVersion, VERSION_1);
+      }  finally {
+		try {
+			response.close();
+		} catch (IOException e) {
+		}
+	}
     }
     catch(IOException ex) {
       throw new SshException(SshException.INTERNAL_ERROR, ex);
@@ -162,38 +168,45 @@ public class PublicKeySubsystem
 
       while(true) {
         ByteArrayReader response = new ByteArrayReader(nextMessage());
-
-        String type = response.readString();
-
-        if(type.equals("publickey")) {
-          @SuppressWarnings("unused")
-          String comment = 
-        	  response.readString();
-          String algorithm = 
-        	  response.readString();
-          keys.addElement(
-             SshPublicKeyFileFactory.decodeSSH2PublicKey(algorithm, 
-             response.readBinaryString()));
-
-        }
-        else if(type.equals("status")) {
-          int status = (int)response.readInt();
-          String desc = response.readString();
-
-          if(status != PublicKeySubsystemException.SUCCESS) {
-            throw new PublicKeySubsystemException(status, desc);
-          }
-		SshPublicKey[] array = new SshPublicKey[keys.size()];
-		keys.copyInto(array);
-
-		return array;
-
-        }
-        else {
-          throw new SshException(
-             "The server sent an invalid response to a list command",
-             SshException.PROTOCOL_VIOLATION);
-        }
+	
+	     try {
+	        String type = response.readString();
+	
+	        if(type.equals("publickey")) {
+	          @SuppressWarnings("unused")
+	          String comment = 
+	        	  response.readString();
+	          String algorithm = 
+	        	  response.readString();
+	          keys.addElement(
+	             SshPublicKeyFileFactory.decodeSSH2PublicKey(algorithm, 
+	             response.readBinaryString()));
+	
+	        }
+	        else if(type.equals("status")) {
+	          int status = (int)response.readInt();
+	          String desc = response.readString();
+	
+	          if(status != PublicKeySubsystemException.SUCCESS) {
+	            throw new PublicKeySubsystemException(status, desc);
+	          }
+			SshPublicKey[] array = new SshPublicKey[keys.size()];
+			keys.copyInto(array);
+	
+			return array;
+	
+	        }
+	        else {
+	          throw new SshException(
+	             "The server sent an invalid response to a list command",
+	             SshException.PROTOCOL_VIOLATION);
+	        }
+        } finally {
+    		try {
+    			response.close();
+    		} catch (IOException e) {
+    		}
+    	}
       }
     }
     catch(IOException ex) {
@@ -243,11 +256,11 @@ public class PublicKeySubsystem
   void readStatusResponse()
      throws SshException, PublicKeySubsystemException {
 
-    try {
-      ByteArrayReader msg = new ByteArrayReader(nextMessage());
-
-//      String str = 
-    	  msg.readString();
+	ByteArrayReader msg = new ByteArrayReader(nextMessage());
+    
+	try {
+     
+   	  msg.readString();
       int status = (int)msg.readInt();
       String desc = msg.readString();
 
@@ -257,6 +270,11 @@ public class PublicKeySubsystem
     }
     catch(IOException ex) {
       throw new SshException(ex);
+    } finally {
+		try {
+			msg.close();
+		} catch (IOException e) {
+		}
     }
   }
 

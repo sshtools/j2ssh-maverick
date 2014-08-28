@@ -256,19 +256,23 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 			}
 
 			ByteArrayReader bar = new ByteArrayReader(msg);
-			bar.skip(1);
-
-			serverVersion = (int) bar.readInt();
-			version = Math.min(serverVersion, MAX_VERSION);
 
 			try {
-				while (bar.available() > 0) {
-					String name = bar.readString();
-					byte[] data = bar.readBinaryString();
-
-					extensions.put(name, data);
+				bar.skip(1);
+	
+				serverVersion = (int) bar.readInt();
+				version = Math.min(serverVersion, MAX_VERSION);
+				try {
+					while (bar.available() > 0) {
+						String name = bar.readString();
+						byte[] data = bar.readBinaryString();
+	
+						extensions.put(name, data);
+					}
+				} catch (Throwable t) {
 				}
-			} catch (Throwable t) {
+			} finally {
+				bar.close();
 			}
 
 			if (version <= 3)
@@ -1571,10 +1575,12 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private String getSafeHandle(byte[] handle) {
 		return Base64.encodeBytes(handle, 0, handle.length, true);
 	}
 	
+	@SuppressWarnings("unused")
 	private byte[] getSafeHandle(String handle) {
 		return Base64.decode(handle);
 	}

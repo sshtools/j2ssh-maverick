@@ -21,6 +21,7 @@
 package com.sshtools.ssh.components.jce;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
@@ -66,15 +67,19 @@ public class SshX509RsaSha1PublicKey extends Ssh2RsaPublicKey {
      * @todo Implement this com.maverick.ssh.SshPublicKey method
      */
     public byte[] getEncoded() throws SshException {
-        
+    	ByteArrayWriter baw = new ByteArrayWriter();
     	try {
-			ByteArrayWriter baw = new ByteArrayWriter();
 			baw.writeString(getAlgorithm());
 			baw.writeBinaryString(cert.getEncoded());
 			return baw.toByteArray();
 		} catch (Throwable ex) {
 			throw new SshException("Failed to encoded key data",
 					SshException.INTERNAL_ERROR, ex);
+		} finally {
+			try {
+				baw.close();
+			} catch (IOException e) {
+			}
 		}
     }
 
@@ -89,10 +94,11 @@ public class SshX509RsaSha1PublicKey extends Ssh2RsaPublicKey {
      */
     public void init(byte[] blob, int start, int len) throws SshException {
 
+    	ByteArrayReader bar = new ByteArrayReader(blob, start, len);
+    	
         try {
              
-        	ByteArrayReader bar = new ByteArrayReader(blob, start, len);
-			String header = bar.readString();
+        	String header = bar.readString();
 			
 			if(!header.equals(X509V3_SIGN_RSA_SHA1)) {
 				throw new SshException("The encoded key is not X509 RSA",
@@ -116,6 +122,11 @@ public class SshX509RsaSha1PublicKey extends Ssh2RsaPublicKey {
 
          } catch (Throwable ex) {
              throw new SshException(ex.getMessage(), SshException.JCE_ERROR, ex);
+         } finally {
+  			try {
+  				bar.close();
+  			} catch (IOException e) {
+  			}
          }
     }
 

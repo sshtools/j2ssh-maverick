@@ -28,7 +28,7 @@ import java.util.Hashtable;
 public class JCEProvider implements JCEAlgorithms {
 
 	static Provider defaultProvider = null;
-	static Hashtable specficProviders = new Hashtable();
+	static Hashtable<String,Provider> specficProviders = new Hashtable<String,Provider>();
 	static String secureRandomAlgorithm = JCE_SHA1PRNG;
 
 	static SecureRandom secureRandom;

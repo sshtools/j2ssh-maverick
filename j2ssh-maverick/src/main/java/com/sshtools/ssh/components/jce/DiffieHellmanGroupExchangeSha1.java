@@ -196,6 +196,7 @@ public class DiffieHellmanGroupExchangeSha1
       
       ByteArrayWriter msg = new ByteArrayWriter();
       
+      
       /*SSH_MSG_KEX_DH_GEX_REQUEST_OLD is used for backwards compatibility.
       Instead of sending "min || n || max", the client only sends "n".
       Additionally, the hash is calculated using only "n" instead of "min
@@ -203,19 +204,27 @@ public class DiffieHellmanGroupExchangeSha1
       boolean disableBackwardsCompatibility = !transport.getContext().isDHGroupExchangeBackwardsCompatible();
       int preferredKeySize = transport.getContext().getDHGroupExchangeKeySize();
       
-      msg.write(disableBackwardsCompatibility ? SSH_MSG_KEXDH_GEX_REQUEST : SSH_MSG_KEXDH_GEX_REQUEST_OLD);
+      try {
+	      msg.write(disableBackwardsCompatibility ? SSH_MSG_KEXDH_GEX_REQUEST : SSH_MSG_KEXDH_GEX_REQUEST_OLD);
+	
+	      if(disableBackwardsCompatibility) {
+	    	// This breaks some old servers, use backwards compatibility
+	    	  msg.writeInt(1024);
+	    	  msg.writeInt(preferredKeySize);
+	    	  msg.writeInt(8192); 
+	      } else {
+	    	  msg.writeInt(preferredKeySize);
+	      }
+	      
+	      transport.sendMessage(msg.toByteArray(), true);
 
-      if(disableBackwardsCompatibility) {
-    	// This breaks some old servers, use backwards compatibility
-    	  msg.writeInt(1024);
-    	  msg.writeInt(preferredKeySize);
-    	  msg.writeInt(8192); 
-      } else {
-    	  msg.writeInt(preferredKeySize);
-      }
+      } finally {
+			try {
+				msg.close();
+			} catch (IOException e) {
+			}
+	  }
       
-      transport.sendMessage(msg.toByteArray(), true);
-
       byte[] tmp = transport.nextMessage();
 
       if(tmp[0]!=SSH_MSG_KEXDH_GEX_GROUP) {
@@ -227,25 +236,30 @@ public class DiffieHellmanGroupExchangeSha1
       }
 
       ByteArrayReader bar = new ByteArrayReader(tmp, 1, tmp.length - 1);
-      p = bar.readBigInteger();
-      g = bar.readBigInteger();
       
-     try {
-       DHParameterSpec dhSkipParamSpec = new DHParameterSpec(p, g);
-       dhKeyPairGen.initialize(dhSkipParamSpec);
+      try {
+      
+    	 p = bar.readBigInteger();
+         g = bar.readBigInteger();
+         
+    	 DHParameterSpec dhSkipParamSpec = new DHParameterSpec(p, g);
+    	 dhKeyPairGen.initialize(dhSkipParamSpec);
 
-       KeyPair dhKeyPair = dhKeyPairGen.generateKeyPair();
-       dhKeyAgreement.init(dhKeyPair.getPrivate());
+    	 KeyPair dhKeyPair = dhKeyPairGen.generateKeyPair();
+    	 dhKeyAgreement.init(dhKeyPair.getPrivate());
 
-       e = ((DHPublicKey)dhKeyPair.getPublic()).getY();
-     }
-     catch(InvalidKeyException ex) {
+    	 e = ((DHPublicKey)dhKeyPair.getPublic()).getY();
+     } catch(InvalidKeyException ex) {
        throw new SshException("Failed to generate DH value",
                               SshException.JCE_ERROR);
-     }
-     catch(InvalidAlgorithmParameterException ex) {
+     } catch(InvalidAlgorithmParameterException ex) {
        throw new SshException("Failed to generate DH value",
                                              SshException.JCE_ERROR);
+     } finally {
+   	    try {
+			bar.close();
+		} catch (IOException e) {
+		}
      }
 
 
@@ -270,28 +284,32 @@ public class DiffieHellmanGroupExchangeSha1
 
       bar = new ByteArrayReader(tmp, 1, tmp.length - 1);
 
-      hostKey = bar.readBinaryString();
-      f = bar.readBigInteger();
-      signature = bar.readBinaryString();
-
-      // Calculate diffie hellman k value
-      DHPublicKeySpec spec = new DHPublicKeySpec(f, p, g);
-      
-      DHPublicKey key = (DHPublicKey)dhKeyFactory.generatePublic(spec);
-
-      dhKeyAgreement.doPhase(key, true);
-      
-      tmp = dhKeyAgreement.generateSecret();
-      if((tmp[0] & 0x80)==0x80) {
-      	byte[] tmp2 = new byte[tmp.length+1];
-      	System.arraycopy(tmp, 0, tmp2, 1, tmp.length);
-      	tmp = tmp2;
+      try {
+	      hostKey = bar.readBinaryString();
+	      f = bar.readBigInteger();
+	      signature = bar.readBinaryString();
+	
+	      // Calculate diffie hellman k value
+	      DHPublicKeySpec spec = new DHPublicKeySpec(f, p, g);
+	      
+	      DHPublicKey key = (DHPublicKey)dhKeyFactory.generatePublic(spec);
+	
+	      dhKeyAgreement.doPhase(key, true);
+	      
+	      tmp = dhKeyAgreement.generateSecret();
+	      if((tmp[0] & 0x80)==0x80) {
+	      	byte[] tmp2 = new byte[tmp.length+1];
+	      	System.arraycopy(tmp, 0, tmp2, 1, tmp.length);
+	      	tmp = tmp2;
+	      }
+	      // Calculate diffe hellman k value
+	      secret = new BigInteger(tmp);
+	
+	      // Calculate the exchange hash
+	      calculateExchangeHash(disableBackwardsCompatibility, preferredKeySize);
+      } finally {
+    	  bar.close();
       }
-      // Calculate diffe hellman k value
-      secret = new BigInteger(tmp);
-
-      // Calculate the exchange hash
-      calculateExchangeHash(disableBackwardsCompatibility, preferredKeySize);
     }
     catch(Exception ex) {
       throw new SshException(ex,

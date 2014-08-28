@@ -97,8 +97,10 @@ public class KBIAuthentication
   public void authenticate(
       AuthenticationProtocol authentication,
       String servicename) throws SshException, AuthenticationResult {
-
-    try {
+	
+	ByteArrayWriter baw = new ByteArrayWriter();
+    
+	try {
       if(handler == null) {
         throw new SshException(
            "A request handler must be set!",
@@ -106,7 +108,7 @@ public class KBIAuthentication
       }
 
       // Send the authentication request
-      ByteArrayWriter baw = new ByteArrayWriter();
+      
       baw.writeString("");
       baw.writeString("");
 
@@ -118,47 +120,56 @@ public class KBIAuthentication
         byte[] msg = authentication.readMessage();
         ByteArrayReader bar = new ByteArrayReader(msg);
 
-        if(bar.read() != SSH_MSG_USERAUTH_INFO_REQUEST) {
-          authentication.transport.disconnect(TransportProtocol.PROTOCOL_ERROR,
-             "Unexpected authentication message received!");
-          throw new SshException("Unexpected authentication message received!",
-                                 SshException.PROTOCOL_VIOLATION);
+        try {
+	        if(bar.read() != SSH_MSG_USERAUTH_INFO_REQUEST) {
+	          authentication.transport.disconnect(TransportProtocol.PROTOCOL_ERROR,
+	             "Unexpected authentication message received!");
+	          throw new SshException("Unexpected authentication message received!",
+	                                 SshException.PROTOCOL_VIOLATION);
+	        }
+	
+	        String name = bar.readString();
+	        String instruction = bar.readString();
+	        @SuppressWarnings("unused")
+			String langtag = bar.readString();
+	
+	        int num = (int)bar.readInt();
+	        String prompt;
+	        boolean echo;
+	        KBIPrompt[] prompts = new KBIPrompt[num];
+	        for(int i = 0; i < num; i++) {
+	          prompt = bar.readString();
+	          echo = (bar.read() == 1);
+	          prompts[i] = new KBIPrompt(prompt, echo);
+	        }
+	
+	        if(!handler.showPrompts(name,
+	                            instruction, prompts)) {
+	        	throw new AuthenticationResult(SshAuthentication.CANCELLED);
+	        }
+	
+	        baw.reset();
+	        baw.write(SSH_MSG_USERAUTH_INFO_RESPONSE);
+	        baw.writeInt(prompts.length);
+	
+	        for(int i = 0; i < prompts.length; i++) {
+	          baw.writeString(prompts[i].getResponse());
+	        }
+	
+	        authentication.transport.sendMessage(baw.toByteArray(), true);
+        } finally {
+        	bar.close();
         }
-
-        String name = bar.readString();
-        String instruction = bar.readString();
-        @SuppressWarnings("unused")
-		String langtag = bar.readString();
-
-        int num = (int)bar.readInt();
-        String prompt;
-        boolean echo;
-        KBIPrompt[] prompts = new KBIPrompt[num];
-        for(int i = 0; i < num; i++) {
-          prompt = bar.readString();
-          echo = (bar.read() == 1);
-          prompts[i] = new KBIPrompt(prompt, echo);
-        }
-
-        if(!handler.showPrompts(name,
-                            instruction, prompts)) {
-        	throw new AuthenticationResult(SshAuthentication.CANCELLED);
-        }
-
-        baw.reset();
-        baw.write(SSH_MSG_USERAUTH_INFO_RESPONSE);
-        baw.writeInt(prompts.length);
-
-        for(int i = 0; i < prompts.length; i++) {
-          baw.writeString(prompts[i].getResponse());
-        }
-
-        authentication.transport.sendMessage(baw.toByteArray(), true);
       }
     }
     catch(IOException ex) {
       throw new SshException(ex,
                              SshException.INTERNAL_ERROR);
+    } finally {
+  			try {
+  				baw.close();
+  			} catch (IOException e) {
+  			}
     }
 
   }

@@ -64,36 +64,44 @@ class SshtoolsPrivateKeyFile
     super(BEGIN, END);
     setHeaderValue("Comment", comment);
     ByteArrayWriter baw = new ByteArrayWriter();
-    // Generate the keyblob
-    if (pair.getPrivateKey() instanceof SshDsaPrivateKey) {
+    
+    try {
+	    // Generate the keyblob
+	    if (pair.getPrivateKey() instanceof SshDsaPrivateKey) {
+	
+	      SshDsaPrivateKey key = (SshDsaPrivateKey) pair.getPrivateKey();
+	      SshDsaPublicKey pub = key.getPublicKey();
+	      baw.writeString("ssh-dss");
+	      baw.writeBigInteger(pub.getP());
+	      baw.writeBigInteger(pub.getQ());
+	      baw.writeBigInteger(pub.getG());
+	      baw.writeBigInteger(key.getX());
+	
+	      keyblob = encryptKey(baw.toByteArray(), passphrase);
+	
+	    }
+	    else if (pair.getPrivateKey() instanceof SshRsaPrivateKey) {
+	
+	      SshRsaPrivateKey pri = (SshRsaPrivateKey) pair.getPrivateKey();
+	      SshRsaPublicKey pub = (SshRsaPublicKey) pair.getPublicKey();
+	
+	      baw.writeString("ssh-rsa");
+	      baw.writeBigInteger(pub.getPublicExponent());
+	      baw.writeBigInteger(pub.getModulus());
+	      baw.writeBigInteger(pri.getPrivateExponent());
+	
+	      keyblob = encryptKey(baw.toByteArray(), passphrase);
+	    }
+	    else {
+	      throw new IOException("Unsupported private key type!");
+	    }
 
-      SshDsaPrivateKey key = (SshDsaPrivateKey) pair.getPrivateKey();
-      SshDsaPublicKey pub = key.getPublicKey();
-      baw.writeString("ssh-dss");
-      baw.writeBigInteger(pub.getP());
-      baw.writeBigInteger(pub.getQ());
-      baw.writeBigInteger(pub.getG());
-      baw.writeBigInteger(key.getX());
-
-      keyblob = encryptKey(baw.toByteArray(), passphrase);
-
-    }
-    else if (pair.getPrivateKey() instanceof SshRsaPrivateKey) {
-
-      SshRsaPrivateKey pri = (SshRsaPrivateKey) pair.getPrivateKey();
-      SshRsaPublicKey pub = (SshRsaPublicKey) pair.getPublicKey();
-
-      baw.writeString("ssh-rsa");
-      baw.writeBigInteger(pub.getPublicExponent());
-      baw.writeBigInteger(pub.getModulus());
-      baw.writeBigInteger(pri.getPrivateExponent());
-
-      keyblob = encryptKey(baw.toByteArray(), passphrase);
-    }
-    else {
-      throw new IOException("Unsupported private key type!");
-    }
-
+    } finally {
+		try {
+			baw.close();
+		} catch (IOException e) {
+		}
+	}
   }
 
   public String getType() {
@@ -109,9 +117,9 @@ class SshtoolsPrivateKeyFile
    * @see com.sshtools.publickey.SshPrivateKeyFile#isPassphraseProtected()
    */
   public boolean isPassphraseProtected() {
-    try {
-      ByteArrayReader bar = new ByteArrayReader(keyblob);
-
+	ByteArrayReader bar = new ByteArrayReader(keyblob);
+    
+	try {
       String type = bar.readString();
 
       if (type.equals("none")) {
@@ -121,8 +129,12 @@ class SshtoolsPrivateKeyFile
       if (type.equalsIgnoreCase("3des-cbc")) {
         return true;
       }
-    }
-    catch (IOException ioe) {
+    } catch (IOException ioe) {
+    } finally {
+  			try {
+  				bar.close();
+  			} catch (IOException e) {
+  			}
     }
 
     return false;
@@ -130,9 +142,10 @@ class SshtoolsPrivateKeyFile
 
   private byte[] encryptKey(byte[] key, String passphrase) throws IOException {
 
-    try {
-		ByteArrayWriter baw = new ByteArrayWriter();
-
+	ByteArrayWriter baw = new ByteArrayWriter();
+    
+	try {
+	
 		String type = "none";
 
 		if (passphrase != null) {
@@ -150,30 +163,35 @@ class SshtoolsPrivateKeyFile
 		    cipher.init(SshCipher.ENCRYPT_MODE, iv, keydata);
 
 		    ByteArrayWriter data = new ByteArrayWriter();
-		    baw.writeString(type);
-		    baw.write(iv);
-
-		    data.writeInt(cookie);
-		    data.writeBinaryString(key);
-
-		    if (data.size() % cipher.getBlockSize() != 0) {
-		      int length = cipher.getBlockSize() -
-		          (data.size() % cipher.getBlockSize());
-		      byte[] padding = new byte[length];
-		      for (int i = 0; i < length; i++) {
-		        padding[i] = (byte) length;
-		      }
-
-		      data.write(padding);
+		    
+		    try {
+			    baw.writeString(type);
+			    baw.write(iv);
+	
+			    data.writeInt(cookie);
+			    data.writeBinaryString(key);
+	
+			    if (data.size() % cipher.getBlockSize() != 0) {
+			      int length = cipher.getBlockSize() -
+			          (data.size() % cipher.getBlockSize());
+			      byte[] padding = new byte[length];
+			      for (int i = 0; i < length; i++) {
+			        padding[i] = (byte) length;
+			      }
+	
+			      data.write(padding);
+			    }
+	
+			    byte[] blob = data.toByteArray();
+			    cipher.transform(blob, 0, blob, 0, blob.length);
+	
+			    // Encrypt and write
+			    baw.writeBinaryString(blob);
+	
+			    return baw.toByteArray();
+		    } finally {
+		    	data.close();
 		    }
-
-		    byte[] blob = data.toByteArray();
-		    cipher.transform(blob, 0, blob, 0, blob.length);
-
-		    // Encrypt and write
-		    baw.writeBinaryString(blob);
-
-		    return baw.toByteArray();
 		  }
 		}
 
@@ -187,15 +205,20 @@ class SshtoolsPrivateKeyFile
 		return baw.toByteArray();
 	} catch (SshException e) {
 		throw new SshIOException(e);
+	} finally {
+		try {
+			baw.close();
+		} catch (IOException e) {
+		}
 	}
   }
 
   private byte[] decryptKey(String passphrase) throws IOException, InvalidPassphraseException {
 
-    try {
+	ByteArrayReader bar = new ByteArrayReader(keyblob);
+    
+	try {
 		byte[] decryptedkey;
-
-		ByteArrayReader bar = new ByteArrayReader(keyblob);
 
 		String type = bar.readString();
 
@@ -216,12 +239,16 @@ class SshtoolsPrivateKeyFile
 		  cipher.transform(decryptedkey, 0, decryptedkey, 0, decryptedkey.length);
 		  ByteArrayReader data = new ByteArrayReader(decryptedkey);
 
-		  if (data.readInt() == cookie) {
-		    decryptedkey = data.readBinaryString();
-		    // Process the key into an SshPrivatekey implentation
-		  }
-		  else {
-		    throw new InvalidPassphraseException();
+		  try {
+			  if (data.readInt() == cookie) {
+			    decryptedkey = data.readBinaryString();
+			    // Process the key into an SshPrivatekey implentation
+			  }
+			  else {
+			    throw new InvalidPassphraseException();
+			  }
+		  } finally {
+			  data.close();
 		  }
 		}
 		else {
@@ -231,7 +258,12 @@ class SshtoolsPrivateKeyFile
 		return decryptedkey;
 	} catch (SshException e) {
 		throw new SshIOException(e);
-	}
+	} finally {
+  			try {
+  				bar.close();
+  			} catch (IOException e) {
+  			}
+    }
   }
 
   public byte[] getFormattedKey() throws IOException {
@@ -243,9 +275,11 @@ class SshtoolsPrivateKeyFile
    */
   public SshKeyPair toKeyPair(String passphrase) throws IOException, InvalidPassphraseException{
 
-    try {
+	ByteArrayReader bar = new ByteArrayReader(decryptKey(passphrase));
+    
+	try {
 		// Process the actual key and return the key pair
-		ByteArrayReader bar = new ByteArrayReader(decryptKey(passphrase));
+		
 
 		String algorithm = bar.readString();
 
@@ -285,7 +319,12 @@ class SshtoolsPrivateKeyFile
 		}
 	} catch (SshException e) {
 		throw new SshIOException(e);
-	}
+	} finally {
+  			try {
+  				bar.close();
+  			} catch (IOException e) {
+  			}
+    }
 
   }
 

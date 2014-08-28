@@ -151,113 +151,118 @@ class PuTTYPrivateKeyFile implements SshPrivateKeyFile {
                     ByteArrayReader pub = new ByteArrayReader(Base64.decode(
                         publickey));
 
-                    line = reader.readLine();
-
-                    if (line != null && line.startsWith("Private-Lines:")) {
-                      int privatelines = Integer.parseInt(line.substring(line.
-                          indexOf(":") + 1).trim());
-
-                      String privatekey = "";
-                      for (int i = 0; i < privatelines; i++) {
-                        line = reader.readLine();
-                        if (line != null) {
-                          privatekey += line;
-                        }
-                        else {
-                          throw new IOException("Corrupt private key data in PuTTY private key");
-                        }
-                      }
-
-                      byte[] blob = Base64.decode(privatekey);
-
-	                  if(encryption.equals("aes256-cbc")) {
-	                      	SshCipher cipher = (SshCipher) ComponentManager.getInstance().supportedSsh2CiphersCS().getInstance(encryption);
+                    try {
+	                    line = reader.readLine();
 	
-	                        byte[] iv = new byte[40];
-	                        byte[] key = new byte[40];
+	                    if (line != null && line.startsWith("Private-Lines:")) {
+	                      int privatelines = Integer.parseInt(line.substring(line.
+	                          indexOf(":") + 1).trim());
 	
-	                        Digest hash = (Digest) ComponentManager.getInstance().supportedDigests().getInstance("SHA-1");
-	                        hash.putInt(0);
-	                        hash.putBytes(passphrase.getBytes());
-	                        byte[] key1 = hash.doFinal();
+	                      String privatekey = "";
+	                      for (int i = 0; i < privatelines; i++) {
+	                        line = reader.readLine();
+	                        if (line != null) {
+	                          privatekey += line;
+	                        }
+	                        else {
+	                          throw new IOException("Corrupt private key data in PuTTY private key");
+	                        }
+	                      }
 	
-	                        hash.putInt(1);
-	                        hash.putBytes(passphrase.getBytes());
-	                        byte[] key2 = hash.doFinal();
+	                      byte[] blob = Base64.decode(privatekey);
 	
-	                        System.arraycopy(key1, 0, key, 0, 20);
-	                        System.arraycopy(key2, 0, key, 20, 20);
+		                  if(encryption.equals("aes256-cbc")) {
+		                      	SshCipher cipher = (SshCipher) ComponentManager.getInstance().supportedSsh2CiphersCS().getInstance(encryption);
+		
+		                        byte[] iv = new byte[40];
+		                        byte[] key = new byte[40];
+		
+		                        Digest hash = (Digest) ComponentManager.getInstance().supportedDigests().getInstance("SHA-1");
+		                        hash.putInt(0);
+		                        hash.putBytes(passphrase.getBytes());
+		                        byte[] key1 = hash.doFinal();
+		
+		                        hash.putInt(1);
+		                        hash.putBytes(passphrase.getBytes());
+		                        byte[] key2 = hash.doFinal();
+		
+		                        System.arraycopy(key1, 0, key, 0, 20);
+		                        System.arraycopy(key2, 0, key, 20, 20);
+		
+		                        cipher.init(SshCipher.DECRYPT_MODE, iv, key);
+		
+		                        cipher.transform(blob);
+		
+		                        wasEncrpyted = true;
+		                    }
 	
-	                        cipher.init(SshCipher.DECRYPT_MODE, iv, key);
+	                      // Read the private key data
+	                      ByteArrayReader bar = new ByteArrayReader(blob);
 	
-	                        cipher.transform(blob);
-	
-	                        wasEncrpyted = true;
+	                      try {
+		                      // Convert the private key into the format requried by J2SSH
+		                      if (type.equals("ssh-dss")) {
+		
+		                        // Read the required variables from the public key
+		                        pub.readString(); // Ignore sice we already have it
+		                        BigInteger p = pub.readBigInteger();
+		                        BigInteger q = pub.readBigInteger();
+		                        BigInteger g = pub.readBigInteger();
+		                        BigInteger y = pub.readBigInteger();
+		
+		                        /* And for "ssh-dss", it will be composed of
+		                         *
+		                         *    mpint  x                  (the private key parameter)
+		                         *  [ string hash   20-byte hash of mpints p || q || g   only in old format ]
+		                         */
+		
+		                        // now read the private exponent from the private key
+		                        BigInteger x = bar.readBigInteger();
+		
+		                        if (format == 1) {
+		
+		                        }
+		
+		                        SshKeyPair pair = new SshKeyPair();
+		                        SshDsaPublicKey publ = ComponentManager.getInstance().createDsaPublicKey(p, q, g, y);
+		                        pair.setPublicKey(publ);
+		
+		                        pair.setPrivateKey(ComponentManager.getInstance().createDsaPrivateKey(p,q,g,x, publ.getY()));
+		
+		                        return pair;
+		                      }
+		                      else if(type.equals("ssh-rsa")) {
+		
+		                        // Read the requried variables from the public key
+		                        pub.readString(); // Ignore since we already have it
+		                        BigInteger publicExponent = pub.readBigInteger();
+		                        BigInteger modulus = pub.readBigInteger();
+		
+		                        /*    mpint  private_exponent
+		                         *    mpint  p                  (the larger of the two primes)
+		                         *    mpint  q                  (the smaller prime)
+		                         *    mpint  iqmp               (the inverse of q modulo p)
+		                         *    data   padding            (to reach a multiple of the cipher block size)
+		                         */
+		
+		                        // Read the private key variables from putty file
+		                        BigInteger privateExponent = bar.readBigInteger();
+		
+		                        SshKeyPair pair = new SshKeyPair();
+		
+		                        pair.setPublicKey(ComponentManager.getInstance().createRsaPublicKey(modulus,publicExponent));
+		                        pair.setPrivateKey(ComponentManager.getInstance().createRsaPrivateKey(modulus,privateExponent));
+		
+		                        return pair;
+		                      } else
+		                        throw new IOException("Unexpected key type " + type);
+	                      } finally {
+	                    	  bar.close();
+	                      }
 	                    }
-
-                      // Read the private key data
-                      ByteArrayReader bar = new ByteArrayReader(blob);
-//                      ByteArrayWriter baw = new ByteArrayWriter();
-
-                      // Convert the private key into the format requried by J2SSH
-                      if (type.equals("ssh-dss")) {
-
-                        // Read the required variables from the public key
-                        pub.readString(); // Ignore sice we already have it
-                        BigInteger p = pub.readBigInteger();
-                        BigInteger q = pub.readBigInteger();
-                        BigInteger g = pub.readBigInteger();
-                        BigInteger y = pub.readBigInteger();
-
-                        /* And for "ssh-dss", it will be composed of
-                         *
-                         *    mpint  x                  (the private key parameter)
-                         *  [ string hash   20-byte hash of mpints p || q || g   only in old format ]
-                         */
-
-                        // now read the private exponent from the private key
-                        BigInteger x = bar.readBigInteger();
-
-                        if (format == 1) {
-
-                        }
-
-                        SshKeyPair pair = new SshKeyPair();
-                        SshDsaPublicKey publ = ComponentManager.getInstance().createDsaPublicKey(p, q, g, y);
-                        pair.setPublicKey(publ);
-
-                        pair.setPrivateKey(ComponentManager.getInstance().createDsaPrivateKey(p,q,g,x, publ.getY()));
-
-                        return pair;
-                      }
-                      else if(type.equals("ssh-rsa")) {
-
-                        // Read the requried variables from the public key
-                        pub.readString(); // Ignore since we already have it
-                        BigInteger publicExponent = pub.readBigInteger();
-                        BigInteger modulus = pub.readBigInteger();
-
-                        /*    mpint  private_exponent
-                         *    mpint  p                  (the larger of the two primes)
-                         *    mpint  q                  (the smaller prime)
-                         *    mpint  iqmp               (the inverse of q modulo p)
-                         *    data   padding            (to reach a multiple of the cipher block size)
-                         */
-
-                        // Read the private key variables from putty file
-                        BigInteger privateExponent = bar.readBigInteger();
-
-                        SshKeyPair pair = new SshKeyPair();
-
-                        pair.setPublicKey(ComponentManager.getInstance().createRsaPublicKey(modulus,publicExponent));
-                        pair.setPrivateKey(ComponentManager.getInstance().createRsaPrivateKey(modulus,privateExponent));
-
-                        return pair;
-                      } else
-                        throw new IOException("Unexpected key type " + type);
-
+                    } finally {
+                    	pub.close();
                     }
-
                   }
                   catch (NumberFormatException ex) {
                   }

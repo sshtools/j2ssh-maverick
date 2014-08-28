@@ -81,8 +81,8 @@ class ConnectionProtocol extends SshMessageRouter implements
 	};
 
 	TransportProtocol transport;
-	Hashtable channelfactories = new Hashtable();
-	Hashtable requesthandlers = new Hashtable();
+	Hashtable<String,ChannelFactory> channelfactories = new Hashtable<String,ChannelFactory>();
+	Hashtable<String,GlobalRequestHandler> requesthandlers = new Hashtable<String,GlobalRequestHandler>();
 
 	public ConnectionProtocol(TransportProtocol transport, SshContext context,
 			boolean buffered) {
@@ -123,8 +123,10 @@ class ConnectionProtocol extends SshMessageRouter implements
 
 	public boolean sendGlobalRequest(GlobalRequest request, boolean wantreply,
 			long timeout) throws SshException {
+		
+		ByteArrayWriter msg = new ByteArrayWriter();
 		try {
-			ByteArrayWriter msg = new ByteArrayWriter();
+			
 			msg.write(SSH_MSG_GLOBAL_REQUEST);
 			msg.writeString(request.getName());
 			msg.writeBoolean(wantreply);
@@ -168,6 +170,11 @@ class ConnectionProtocol extends SshMessageRouter implements
 			return true;
 		} catch (IOException ex) {
 			throw new SshException(ex, SshException.INTERNAL_ERROR);
+		} finally {
+			try {
+				msg.close();
+			} catch (IOException e) {
+			}
 		}
 	}
 
@@ -211,24 +218,32 @@ class ConnectionProtocol extends SshMessageRouter implements
 			 * packet size .... channel type specific data follows
 			 */
 			ByteArrayWriter msg = new ByteArrayWriter();
-			msg.write(SSH_MSG_CHANNEL_OPEN);
-			msg.writeString(channel.getName());
-			msg.writeInt(channel.getChannelId());
-			msg.writeInt(channel.getWindowSize());
-			msg.writeInt(channel.getPacketSize());
-			if (requestdata != null) {
-				msg.write(requestdata);
+			
+			try {
+				msg.write(SSH_MSG_CHANNEL_OPEN);
+				msg.writeString(channel.getName());
+				msg.writeInt(channel.getChannelId());
+				msg.writeInt(channel.getWindowSize());
+				msg.writeInt(channel.getPacketSize());
+				if (requestdata != null) {
+					msg.write(requestdata);
+	
+				}
+	
+				// #ifdef DEBUG
+				EventLog.LogEvent(this, "Sending SSH_MSG_CHANNEL_OPEN type="
+						+ channel.getName() + " id=" + channel.getChannelId()
+						+ " window=" + channel.getWindowSize() + " packet="
+						+ channel.getPacketSize());
+				// #endif
+				transport.sendMessage(msg.toByteArray(), true);
 
+			} finally {
+				try {
+					msg.close();
+				} catch (IOException e) {
+				}
 			}
-
-			// #ifdef DEBUG
-			EventLog.LogEvent(this, "Sending SSH_MSG_CHANNEL_OPEN type="
-					+ channel.getName() + " id=" + channel.getChannelId()
-					+ " window=" + channel.getWindowSize() + " packet="
-					+ channel.getPacketSize());
-			// #endif
-			transport.sendMessage(msg.toByteArray(), true);
-
 			// #ifdef DEBUG
 			// EventLog.LogEvent(this,"sent transport message, getting message stores next message");
 			// #endif
@@ -349,9 +364,10 @@ class ConnectionProtocol extends SshMessageRouter implements
 
 	void processChannelOpenRequest(String type, int remoteid, int remotewindow,
 			int remotepacket, byte[] requestdata) throws SshException {
-
+		
+		ByteArrayWriter response = new ByteArrayWriter();
+		
 		try {
-			ByteArrayWriter response = new ByteArrayWriter();
 
 			if (channelfactories.containsKey(type)) {
 				try {
@@ -439,12 +455,18 @@ class ConnectionProtocol extends SshMessageRouter implements
 		} catch (IOException ex1) {
 			throw new SshException(ex1.getMessage(),
 					SshException.INTERNAL_ERROR);
+		} finally {
+			try {
+				response.close();
+			} catch (IOException e) {
+			}
 		}
 	}
 
 	void processGlobalRequest(String requestname, boolean wantreply,
 			byte[] requestdata) throws SshException {
 
+		ByteArrayWriter response = new ByteArrayWriter();
 		try {
 			boolean success = false;
 			GlobalRequest request = new GlobalRequest(requestname, requestdata);
@@ -455,7 +477,7 @@ class ConnectionProtocol extends SshMessageRouter implements
 
 			if (wantreply) {
 				if (success) {
-					ByteArrayWriter response = new ByteArrayWriter();
+					
 					response.write(SSH_MSG_REQUEST_SUCCESS);
 					if (request.getData() != null) {
 						response.write(request.getData());
@@ -475,6 +497,11 @@ class ConnectionProtocol extends SshMessageRouter implements
 			}
 		} catch (IOException ex) {
 			throw new SshException(ex, SshException.INTERNAL_ERROR);
+		} finally {
+			try {
+				response.close();
+			} catch (IOException e) {
+			}
 		}
 
 	}

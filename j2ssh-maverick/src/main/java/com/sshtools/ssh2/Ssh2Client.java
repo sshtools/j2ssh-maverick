@@ -64,8 +64,8 @@ public class Ssh2Client implements SshClient {
 	String remoteIdentification;
 	String[] authenticationMethods;
 	String username;
-	Hashtable forwardingListeners = new Hashtable();
-	Hashtable forwardingDestinations = new Hashtable();
+	Hashtable<String, ForwardingRequestListener> forwardingListeners = new Hashtable<String, ForwardingRequestListener>();
+	Hashtable<String, String> forwardingDestinations = new Hashtable<String, String>();
 	ForwardingRequestChannelFactory requestFactory = new ForwardingRequestChannelFactory();
 	SshAuthentication auth;
 	SshConnector connector;
@@ -182,7 +182,7 @@ public class Ssh2Client implements SshClient {
 			// #ifdef DEBUG
 			EventLog.LogEvent(this, "Available authentications are " + methods);
 			// #endif
-			Vector tmp = new Vector();
+			Vector<String> tmp = new Vector<String>();
 			int idx;
 			while (methods != null) {
 				idx = methods.indexOf(',');
@@ -563,6 +563,9 @@ public class Ssh2Client implements SshClient {
 			int originatingPort, SshTransport transport,
 			ChannelEventListener listener) throws SshException,
 			ChannelOpenException {
+		
+		ByteArrayWriter request = new ByteArrayWriter();
+		
 		try {
 
 			// #ifdef DEBUG
@@ -576,7 +579,8 @@ public class Ssh2Client implements SshClient {
 					2097152, hostname, port, listeningAddress, listeningPort,
 					originatingHost, originatingPort, transport);
 
-			ByteArrayWriter request = new ByteArrayWriter();
+			
+			
 			request.writeString(hostname);
 			request.writeInt(port);
 			request.writeString(originatingHost);
@@ -588,13 +592,20 @@ public class Ssh2Client implements SshClient {
 			return tunnel;
 		} catch (IOException ex) {
 			throw new SshException(ex, SshException.INTERNAL_ERROR);
+		} finally {
+			try {
+				request.close();
+			} catch (IOException e) {
+			}
 		}
 	}
 
 	public boolean requestRemoteForwarding(String bindAddress, int bindPort,
 			String hostToConnect, int portToConnect,
 			ForwardingRequestListener listener) throws SshException {
-
+		
+		ByteArrayWriter baw = new ByteArrayWriter();
+		
 		try {
 			if (listener == null) {
 				throw new SshException(
@@ -608,7 +619,7 @@ public class Ssh2Client implements SshClient {
 					+ ":" + portToConnect);
 			// #endif
 
-			ByteArrayWriter baw = new ByteArrayWriter();
+			
 			baw.writeString(bindAddress);
 			baw.writeInt(bindPort);
 			GlobalRequest request = new GlobalRequest("tcpip-forward",
@@ -628,13 +639,20 @@ public class Ssh2Client implements SshClient {
 			return false;
 		} catch (IOException ex) {
 			throw new SshException(ex, SshException.INTERNAL_ERROR);
-		}
+		} finally {
+  			try {
+  				baw.close();
+  			} catch (IOException e) {
+  			}
+    }
 
 	}
 
 	public boolean cancelRemoteForwarding(String bindAddress, int bindPort)
 			throws SshException {
-
+		
+		ByteArrayWriter baw = new ByteArrayWriter();
+		
 		try {
 
 			// #ifdef DEBUG
@@ -642,7 +660,7 @@ public class Ssh2Client implements SshClient {
 					+ bindAddress + ":" + bindPort);
 			// #endif
 
-			ByteArrayWriter baw = new ByteArrayWriter();
+			
 			baw.writeString(bindAddress);
 			baw.writeInt(bindPort);
 			GlobalRequest request = new GlobalRequest("cancel-tcpip-forward",
@@ -661,6 +679,11 @@ public class Ssh2Client implements SshClient {
 			return false;
 		} catch (IOException ex) {
 			throw new SshException(ex, SshException.INTERNAL_ERROR);
+		} finally {
+  			try {
+  				baw.close();
+  			} catch (IOException e) {
+  			}
 		}
 	}
 
@@ -835,9 +858,9 @@ public class Ssh2Client implements SshClient {
 
 			if (channeltype
 					.equals(Ssh2ForwardingChannel.REMOTE_FORWARDING_CHANNEL)) {
-
+				ByteArrayReader bar = new ByteArrayReader(requestdata);
 				try {
-					ByteArrayReader bar = new ByteArrayReader(requestdata);
+					
 					String address = bar.readString();
 					int port = (int) bar.readInt();
 					String originatorIP = bar.readString();
@@ -884,6 +907,11 @@ public class Ssh2Client implements SshClient {
 				} catch (SshException ex) {
 					throw new ChannelOpenException(ex.getMessage(),
 							ChannelOpenException.CONNECT_FAILED);
+				} finally {
+					try {
+						bar.close();
+					} catch (IOException e) {
+					}
 				}
 
 			} else if (channeltype.equals("x11")) {
@@ -892,9 +920,9 @@ public class Ssh2Client implements SshClient {
 					throw new ChannelOpenException(
 							"X Forwarding had not previously been requested",
 							ChannelOpenException.ADMINISTRATIVIVELY_PROHIBITED);
-
+				ByteArrayReader bar = new ByteArrayReader(requestdata);
+				
 				try {
-					ByteArrayReader bar = new ByteArrayReader(requestdata);
 
 					String originatorIP = bar.readString();
 					int originatorPort = (int) bar.readInt();
@@ -956,6 +984,11 @@ public class Ssh2Client implements SshClient {
 				} catch (Throwable ex) {
 					throw new ChannelOpenException(ex.getMessage(),
 							ChannelOpenException.CONNECT_FAILED);
+				} finally {
+					try {
+						bar.close();
+					} catch (IOException e) {
+					}
 				}
 			}
 

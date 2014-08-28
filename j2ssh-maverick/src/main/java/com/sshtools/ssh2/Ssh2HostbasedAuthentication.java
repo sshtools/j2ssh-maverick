@@ -70,17 +70,18 @@ public class Ssh2HostbasedAuthentication
        && !(pub instanceof SshDsaPublicKey))
          throw new SshException("Invalid public key type for SSH2 authentication!",
                                 SshException.BAD_API_USAGE);
-
+    ByteArrayWriter msg = new ByteArrayWriter();
+    ByteArrayWriter baw = new ByteArrayWriter();
+    ByteArrayWriter sig = new ByteArrayWriter();
     try {
       // Generate the message
-      ByteArrayWriter msg = new ByteArrayWriter();
       msg.writeString(pub.getAlgorithm());
       msg.writeBinaryString(pub.getEncoded());
       msg.writeString(clientHostname);
       msg.writeString(clientUsername);
 
       // Generate the data to sign
-      ByteArrayWriter baw = new ByteArrayWriter();
+      
       baw.writeBinaryString(authentication.getSessionIdentifier());
       baw.write(AuthenticationProtocol.SSH_MSG_USERAUTH_REQUEST);
       baw.writeString(username);
@@ -92,7 +93,7 @@ public class Ssh2HostbasedAuthentication
       baw.writeString(clientUsername);
 
       // Format the signature correctly
-      ByteArrayWriter sig = new ByteArrayWriter();
+      
       sig.writeString(pub.getAlgorithm());
       sig.writeBinaryString(prv.sign(baw.toByteArray()));
 
@@ -112,6 +113,20 @@ public class Ssh2HostbasedAuthentication
     catch(IOException ex) {
       throw new SshException(ex,
                              SshException.INTERNAL_ERROR);
+    } finally {
+    	try {
+			msg.close();
+		} catch (IOException e) {
+		}
+    	try {
+			baw.close();
+		} catch (IOException e) {
+		}
+    	try {
+			sig.close();
+		} catch (IOException e) {
+		}
+    	
     }
   }
 

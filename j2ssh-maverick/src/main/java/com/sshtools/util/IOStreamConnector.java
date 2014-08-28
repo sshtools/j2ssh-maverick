@@ -1,24 +1,4 @@
-/**
- * Copyright 2003-2014 SSHTOOLS Limited. All Rights Reserved.
- *
- * For product documentation visit https://www.sshtools.com/
- *
- * This file is part of J2SSH Maverick.
- *
- * J2SSH Maverick is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * J2SSH Maverick is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with J2SSH Maverick.  If not, see <http://www.gnu.org/licenses/>.
- */
-
+/* HEADER */
 package com.sshtools.util;
 
 import java.io.IOException;
@@ -26,9 +6,6 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.util.Vector;
-
-import com.sshtools.events.Event;
-import com.sshtools.events.EventServiceImplementation;
 
 /**
  *  Connects an input stream to an outputstream.
@@ -51,7 +28,7 @@ public class IOStreamConnector {
   int BUFFER_SIZE = DEFAULT_BUFFER_SIZE;
 
   /**  */
-  protected Vector listenerList = new Vector();
+  protected Vector<IOStreamConnectorListener> listenerList = new Vector<IOStreamConnectorListener>();
 
   /**
    * Creates a new IOStreamConnector object.
@@ -205,9 +182,6 @@ public class IOStreamConnector {
           }
           else {
             if (read < 0) {
-              //#ifdef DEBUG
-            	EventServiceImplementation.getInstance().fireEvent((new Event(this,110,true)).addAttribute("LOG_MESSAGE", "Received EOF from InputStream " + in.toString()));
-              //#endif
               running = false;
             }
           }
@@ -222,9 +196,6 @@ public class IOStreamConnector {
           if (running) {
             lastError = ioe;
             running = false;
-            //#ifdef DEBUG
-        	EventServiceImplementation.getInstance().fireEvent((new Event(this,110,true)).addAttribute("LOG_MESSAGE", "Error from InputStream").addAttribute("THROWABLE", ioe));
-            //#endif
           }
 
         }

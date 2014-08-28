@@ -36,7 +36,7 @@ class PEMReader
    extends PEM {
   private LineNumberReader reader;
   private String type;
-  private Hashtable header;
+  private Hashtable<String, String> header;
   private byte[] payload;
 
   /**
@@ -67,7 +67,7 @@ class PEMReader
       }
     }
 
-    header = new Hashtable();
+    header = new Hashtable<String, String>();
 
     while((line = reader.readLine()) != null) {
       int colon = line.indexOf(':');
@@ -132,7 +132,7 @@ class PEMReader
    *
    * @return Hashtable
    */
-  public Hashtable getHeader() {
+  public Hashtable<String, String> getHeader() {
     return header;
   }
 

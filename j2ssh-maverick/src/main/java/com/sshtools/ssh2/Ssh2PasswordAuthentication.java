@@ -121,17 +121,24 @@ public class Ssh2PasswordAuthentication
       }
 
       ByteArrayWriter msg = new ByteArrayWriter();
-      msg.writeBoolean(passwordChangeRequired);
-      msg.writeString(getPassword());
-      if(passwordChangeRequired) {
-        msg.writeString(newpassword);
-
-      }
-      authentication.sendRequest(getUsername(),
-                                 servicename,
-                                 "password",
-                                 msg.toByteArray());
-
+      
+      try {
+	      msg.writeBoolean(passwordChangeRequired);
+	      msg.writeString(getPassword());
+	      if(passwordChangeRequired) {
+	        msg.writeString(newpassword);
+	
+	      }
+	      authentication.sendRequest(getUsername(),
+	                                 servicename,
+	                                 "password",
+	                                 msg.toByteArray());
+      } finally {
+		try {
+			msg.close();
+		} catch (IOException e) {
+		}
+    }
       // We need to read the response since we may have password change.
       byte[] response = authentication.readMessage();
 

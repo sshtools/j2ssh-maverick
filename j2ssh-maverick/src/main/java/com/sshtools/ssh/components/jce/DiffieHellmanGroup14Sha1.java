@@ -132,10 +132,11 @@ public class DiffieHellmanGroup14Sha1 extends SshKeyExchangeClient implements Ab
       throw new SshException("Failed to generate DH value",
                                             SshException.JCE_ERROR, ex);
     }
-
+    ByteArrayWriter msg = new ByteArrayWriter();
+    
     try {
 // Send DH_INIT message
-      ByteArrayWriter msg = new ByteArrayWriter();
+      
       msg.write(SSH_MSG_KEXDH_INIT);
       msg.writeBigInteger(e);
 
@@ -144,7 +145,12 @@ public class DiffieHellmanGroup14Sha1 extends SshKeyExchangeClient implements Ab
     catch(IOException ex) {
       throw new SshException("Failed to write SSH_MSG_KEXDH_INIT to message buffer",
                              SshException.INTERNAL_ERROR);
-    }
+    } finally {
+		try {
+			msg.close();
+		} catch (IOException e) {
+		}
+	}
 
       // Wait for the reply processing any valid transport messages
       byte[] tmp;
@@ -183,11 +189,15 @@ public class DiffieHellmanGroup14Sha1 extends SshKeyExchangeClient implements Ab
 
         // Calculate the exchange hash
         calculateExchangeHash();
-      }
-    catch(Exception ex) {
-      throw new SshException("Failed to read SSH_MSG_KEXDH_REPLY from message buffer",
+      } catch(Exception ex) {
+    	  throw new SshException("Failed to read SSH_MSG_KEXDH_REPLY from message buffer",
                              SshException.INTERNAL_ERROR);
-    }
+      } finally {
+    	  try {
+			bar.close();
+		} catch (IOException e) {
+		}
+      }
 
 
 

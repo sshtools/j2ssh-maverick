@@ -117,9 +117,10 @@ public class Ssh2Session
                                        int width,
                                        int height,
                                        byte[] modes) throws SshException {
-
-    try {
-      ByteArrayWriter request = new ByteArrayWriter();
+	ByteArrayWriter request = new ByteArrayWriter();
+    
+	try {
+      
       request.writeString(term);
       request.writeInt(cols);
       request.writeInt(rows);
@@ -131,7 +132,12 @@ public class Ssh2Session
     catch(IOException ex) {
       throw new SshException(ex,
                              SshException.INTERNAL_ERROR);
-    }
+    } finally {
+		try {
+			request.close();
+		} catch (IOException e) {
+		}
+	}
   }
 
   public boolean startShell() throws SshException {
@@ -158,27 +164,37 @@ public class Ssh2Session
       addChannelEventListener(new CommandLogger());
       // #endif
       
-    try {
       ByteArrayWriter request = new ByteArrayWriter();
-      request.writeString(cmd);
-      boolean success=sendRequest("exec", true, request.toByteArray());
-      if(success) {
-    	  EventServiceImplementation.getInstance().fireEvent((new Event(this,J2SSHEventCodes.EVENT_SHELL_COMMAND,true)).addAttribute(J2SSHEventCodes.ATTRIBUTE_COMMAND, cmd));
-      } else {
-    	  EventServiceImplementation.getInstance().fireEvent((new Event(this,J2SSHEventCodes.EVENT_SHELL_COMMAND,false)).addAttribute(J2SSHEventCodes.ATTRIBUTE_COMMAND, cmd));
-      }
+  
+      try {
       
-      return success;
-    }
-    catch(IOException ex) {
-      throw new SshException(ex,
-                             SshException.INTERNAL_ERROR);
-    }
+	      request.writeString(cmd);
+	      boolean success=sendRequest("exec", true, request.toByteArray());
+	      if(success) {
+	    	  EventServiceImplementation.getInstance().fireEvent((new Event(this,J2SSHEventCodes.EVENT_SHELL_COMMAND,true)).addAttribute(J2SSHEventCodes.ATTRIBUTE_COMMAND, cmd));
+	      } else {
+	    	  EventServiceImplementation.getInstance().fireEvent((new Event(this,J2SSHEventCodes.EVENT_SHELL_COMMAND,false)).addAttribute(J2SSHEventCodes.ATTRIBUTE_COMMAND, cmd));
+	      }
+	      
+	      return success;
+	    }
+	    catch(IOException ex) {
+	      throw new SshException(ex,
+	                             SshException.INTERNAL_ERROR);
+	    } finally {
+			try {
+				request.close();
+			} catch (IOException e) {
+			}
+		}
   }
 
   public boolean executeCommand(String cmd, String charset) throws SshException {
-    try {
-      ByteArrayWriter request = new ByteArrayWriter();
+	
+	ByteArrayWriter request = new ByteArrayWriter();
+	
+	try {
+      
       request.writeString(cmd, charset);
       boolean success = sendRequest("exec", true, request.toByteArray());
       if(success) {
@@ -192,7 +208,12 @@ public class Ssh2Session
     catch(IOException ex) {
       throw new SshException(ex,
                              SshException.INTERNAL_ERROR);
-    }
+    } finally {
+		try {
+			request.close();
+		} catch (IOException e) {
+		}
+	}
   }
   /**
    * SSH2 supports special subsystems that are identified by a name rather than a command
@@ -202,8 +223,10 @@ public class Ssh2Session
    * @throws SshException
    */
   public boolean startSubsystem(String subsystem) throws SshException {
-    try {
-      ByteArrayWriter request = new ByteArrayWriter();
+    
+	 ByteArrayWriter request = new ByteArrayWriter();
+	 try {
+     
       request.writeString(subsystem);
       boolean success = sendRequest("subsystem", true, request.toByteArray());
       if(success) {
@@ -217,7 +240,12 @@ public class Ssh2Session
     catch(IOException ex) {
       throw new SshException(ex,
                              SshException.INTERNAL_ERROR);
-    }
+    } finally {
+		try {
+			request.close();
+		} catch (IOException e) {
+		}
+	}
 
   }
 
@@ -234,8 +262,9 @@ public class Ssh2Session
            String protocol,
            String cookie,
            int screen) throws SshException {
-  try {
-    ByteArrayWriter request = new ByteArrayWriter();
+   ByteArrayWriter request = new ByteArrayWriter();
+   try {
+    
     request.writeBoolean(singleconnection);
     request.writeString(protocol);
     request.writeString(cookie);
@@ -245,7 +274,12 @@ public class Ssh2Session
   catch(IOException ex) {
     throw new SshException(ex,
                            SshException.INTERNAL_ERROR);
-  }
+  } finally {
+		try {
+			request.close();
+		} catch (IOException e) {
+		}
+	}
    }
 
   /**
@@ -255,8 +289,8 @@ public class Ssh2Session
    */
   public boolean setEnvironmentVariable(String name, String value) throws
       SshException {
-    try {
-      ByteArrayWriter request = new ByteArrayWriter();
+	ByteArrayWriter request = new ByteArrayWriter();
+	try {
       request.writeString(name);
       request.writeString(value);
 
@@ -265,13 +299,20 @@ public class Ssh2Session
     catch(IOException ex) {
       throw new SshException(ex,
                              SshException.INTERNAL_ERROR);
-    }
+    } finally {
+		try {
+			request.close();
+		} catch (IOException e) {
+		}
+	}
   }
 
   public void changeTerminalDimensions(int cols, int rows, int width,
-                                       int height) throws SshException {
-    try {
-      ByteArrayWriter request = new ByteArrayWriter();
+		  			int height) throws SshException {
+    
+	ByteArrayWriter request = new ByteArrayWriter();  
+	try {
+     
       request.writeInt(cols);
       request.writeInt(rows);
       request.writeInt(height);
@@ -282,7 +323,12 @@ public class Ssh2Session
     catch(IOException ex) {
       throw new SshException(ex,
                              SshException.INTERNAL_ERROR);
-    }
+    } finally {
+		try {
+			request.close();
+		} catch (IOException e) {
+		}
+	}
 
   }
 
@@ -320,8 +366,10 @@ public class Ssh2Session
    * @throws IOException
    */
   public void signal(String signal) throws SshException {
-    try {
-      ByteArrayWriter request = new ByteArrayWriter();
+   
+	ByteArrayWriter request = new ByteArrayWriter();  
+	try {
+ 
       request.writeString(signal);
 
       sendRequest("signal", false, request.toByteArray());
@@ -329,7 +377,12 @@ public class Ssh2Session
     catch(IOException ex) {
       throw new SshException(ex,
                              SshException.INTERNAL_ERROR);
-    }
+    } finally {
+		try {
+			request.close();
+		} catch (IOException e) {
+		}
+	}
   }
 
   /**
@@ -351,9 +404,16 @@ public class Ssh2Session
         if(requestdata != null) {
           ByteArrayReader bar = new ByteArrayReader(requestdata, 0,
              requestdata.length);
+          try {
           exitsignalinfo = "Signal=" + bar.readString()
              + " CoreDump=" + String.valueOf(bar.read() != 0)
              + " Message=" + bar.readString();
+          } finally {
+      			try {
+      				bar.close();
+      			} catch (IOException e) {
+      			}
+          }
         }
 
       }

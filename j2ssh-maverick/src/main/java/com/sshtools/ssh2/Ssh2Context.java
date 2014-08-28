@@ -865,7 +865,7 @@ public void setKeyReExchangeDisabled(boolean keyReExchangeDisabled) {
 				dhGroupExchangeKeySize = 2048;
 			}
 			
-			Vector allowed = new Vector();
+			Vector<String> allowed = new Vector<String>();
 			allowed.addElement(Ssh2Context.KEX_DIFFIE_HELLMAN_GROUP14_SHA1);
 			allowed.addElement(Ssh2Context.KEX_DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA1);
 			allowed.addElement(Ssh2Context.KEX_DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA256);

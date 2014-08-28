@@ -246,8 +246,10 @@ public class AuthenticationProtocol {
                           String servicename,
                           String methodname,
                           byte[] requestdata) throws SshException {
-    try {
-      ByteArrayWriter msg = new ByteArrayWriter();
+    
+	  ByteArrayWriter msg = new ByteArrayWriter();
+	try {
+    
       msg.write(SSH_MSG_USERAUTH_REQUEST);
       msg.writeString(username);
       msg.writeString(servicename);
@@ -261,7 +263,12 @@ public class AuthenticationProtocol {
     catch(IOException ex) {
       throw new SshException(ex,
                              SshException.INTERNAL_ERROR);
-    }
+    } finally {
+		try {
+			msg.close();
+		} catch (IOException e) {
+		}
+	}
   }
 
   /**
@@ -283,14 +290,18 @@ public class AuthenticationProtocol {
       switch(msg[0]) {
         case SSH_MSG_USERAUTH_FAILURE: {
           ByteArrayReader bar = new ByteArrayReader(msg); //, 6, msg.length - 6);
-          bar.skip(1);
-          String auths = bar.readString();
-          if(bar.read() == 0) {
-        	  EventServiceImplementation.getInstance().fireEvent(new Event(this,J2SSHEventCodes.EVENT_USERAUTH_FAILURE,true));
-        	  throw new AuthenticationResult(SshAuthentication.FAILED, auths);
+          try {
+	          bar.skip(1);
+	          String auths = bar.readString();
+	          if(bar.read() == 0) {
+	        	  EventServiceImplementation.getInstance().fireEvent(new Event(this,J2SSHEventCodes.EVENT_USERAUTH_FAILURE,true));
+	        	  throw new AuthenticationResult(SshAuthentication.FAILED, auths);
+	          }
+	          EventServiceImplementation.getInstance().fireEvent(new Event(this,J2SSHEventCodes.EVENT_USERAUTH_FURTHER_AUTHENTICATION_REQUIRED,true));
+			  throw new AuthenticationResult(SshAuthentication.FURTHER_AUTHENTICATION_REQUIRED, auths);
+          } finally {
+        	  bar.close();
           }
-		EventServiceImplementation.getInstance().fireEvent(new Event(this,J2SSHEventCodes.EVENT_USERAUTH_FURTHER_AUTHENTICATION_REQUIRED,true));
-		  throw new AuthenticationResult(SshAuthentication.FURTHER_AUTHENTICATION_REQUIRED, auths);
         }
         case SSH_MSG_USERAUTH_SUCCESS: {
         	EventServiceImplementation.getInstance().fireEvent(new Event(this,J2SSHEventCodes.EVENT_USERAUTH_SUCCESS,true));
@@ -298,19 +309,17 @@ public class AuthenticationProtocol {
         }
         case SSH_MSG_USERAUTH_BANNER: {
           ByteArrayReader bar = new ByteArrayReader(msg); //, 6, msg.length - 6);
-          bar.skip(1);
-
-          // Show the banner on the current display or print to stdout
-          if(display != null) {
-            display.displayBanner(bar.readString());
+          try {
+	          bar.skip(1);
+	
+	          // Show the banner on the current display or print to stdout
+	          if(display != null) {
+	            display.displayBanner(bar.readString());
+	          }
+	          return true;
+          } finally {
+        	  bar.close();
           }
-          // Do not do this!
-//          else {
-//            System.out.print(bar.readString());
-//
-//          }
-          return true;
-
         }
         default:
           return false;

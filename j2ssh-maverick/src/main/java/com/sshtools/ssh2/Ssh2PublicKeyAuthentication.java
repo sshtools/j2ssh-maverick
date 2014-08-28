@@ -58,7 +58,9 @@ public class Ssh2PublicKeyAuthentication
       AuthenticationProtocol authentication,
       String servicename) throws SshException, AuthenticationResult {
 
-    try {
+	ByteArrayWriter baw = new ByteArrayWriter();
+    
+	try {
       if(getPublicKey() == null) {
         throw new SshException("Public key not set!",
                                SshException.BAD_API_USAGE);
@@ -73,7 +75,7 @@ public class Ssh2PublicKeyAuthentication
       }
 
       // Generate the data to sign
-      ByteArrayWriter baw = new ByteArrayWriter();
+      
       baw.writeBinaryString(authentication.getSessionIdentifier());
       baw.write(AuthenticationProtocol.SSH_MSG_USERAUTH_REQUEST);
       baw.writeString(getUsername());
@@ -95,12 +97,15 @@ public class Ssh2PublicKeyAuthentication
               baw.writeString("ssh-rsa");
               ByteArrayWriter baw2 = new ByteArrayWriter();
 
-              baw2.writeString("ssh-rsa");
-              baw2.writeBigInteger(pk.getPublicExponent());
-              baw2.writeBigInteger(pk.getModulus());
-
-              baw.writeBinaryString(encoded = baw2.toByteArray());
-
+              try {
+	              baw2.writeString("ssh-rsa");
+	              baw2.writeBigInteger(pk.getPublicExponent());
+	              baw2.writeBigInteger(pk.getModulus());
+	
+	              baw.writeBinaryString(encoded = baw2.toByteArray());
+              } finally {
+            	  baw2.close();
+              }
           } else {
                   baw.writeString(getPublicKey().getAlgorithm());
                   baw.writeBinaryString(encoded = getPublicKey().getEncoded());
@@ -112,49 +117,64 @@ public class Ssh2PublicKeyAuthentication
       }
 
       ByteArrayWriter baw2 = new ByteArrayWriter();
-      // Generate the authentication request
-      baw2.writeBoolean(isAuthenticating());
-      baw2.writeString(getPublicKey().getAlgorithm());
-      baw2.writeBinaryString(encoded);
-
-      if(isAuthenticating()) {
-
-        byte[] signature;
-        if(generator != null) {
-          signature = generator.sign(getPublicKey(), baw.toByteArray());
-        }
-        else {
-          signature = getPrivateKey().sign(baw.toByteArray());
-        }
-        // Format the signature correctly
-        ByteArrayWriter sig = new ByteArrayWriter();
-        sig.writeString(getPublicKey().getAlgorithm());
-        sig.writeBinaryString(signature);
-        baw2.writeBinaryString(sig.toByteArray());
+      
+      try {
+	      // Generate the authentication request
+	      baw2.writeBoolean(isAuthenticating());
+	      baw2.writeString(getPublicKey().getAlgorithm());
+	      baw2.writeBinaryString(encoded);
+	
+	      if(isAuthenticating()) {
+	
+	        byte[] signature;
+	        if(generator != null) {
+	          signature = generator.sign(getPublicKey(), baw.toByteArray());
+	        }
+	        else {
+	          signature = getPrivateKey().sign(baw.toByteArray());
+	        }
+	        // Format the signature correctly
+	        ByteArrayWriter sig = new ByteArrayWriter();
+	        
+	        try {
+		        sig.writeString(getPublicKey().getAlgorithm());
+		        sig.writeBinaryString(signature);
+		        baw2.writeBinaryString(sig.toByteArray());
+	        } finally {
+	        	sig.close();
+	        }
+	      }
+	
+	      authentication.sendRequest(getUsername(),
+	                                 servicename,
+	                                 "publickey",
+	                                 baw2.toByteArray());
+	
+	      // We need to read the response since we may have password change.
+	      byte[] response = authentication.readMessage();
+	
+	      if(response[0] == SSH_MSG_USERAUTH_PK_OK) {
+	        throw new AuthenticationResult(PUBLIC_KEY_ACCEPTABLE);
+	      }
+		authentication.transport.disconnect(TransportProtocol.PROTOCOL_ERROR,
+		                                    "Unexpected message "
+		                                    + response[0]
+		                                    + " received");
+		throw new SshException("Unexpected message "
+		                       + response[0]
+		                       + " received",
+		                       SshException.PROTOCOL_VIOLATION);
+      } finally {
+    	  baw2.close();
       }
-
-      authentication.sendRequest(getUsername(),
-                                 servicename,
-                                 "publickey",
-                                 baw2.toByteArray());
-
-      // We need to read the response since we may have password change.
-      byte[] response = authentication.readMessage();
-
-      if(response[0] == SSH_MSG_USERAUTH_PK_OK) {
-        throw new AuthenticationResult(PUBLIC_KEY_ACCEPTABLE);
-      }
-	authentication.transport.disconnect(TransportProtocol.PROTOCOL_ERROR,
-	                                    "Unexpected message "
-	                                    + response[0]
-	                                    + " received");
-	throw new SshException("Unexpected message "
-	                       + response[0]
-	                       + " received",
-	                       SshException.PROTOCOL_VIOLATION);
     } catch(IOException ex) {
       throw new SshException(ex,
                              SshException.INTERNAL_ERROR);
+    } finally {
+    	try {
+			baw.close();
+		} catch (IOException e) {
+		}
     }
 
 

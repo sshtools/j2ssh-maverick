@@ -68,6 +68,7 @@ public class Base64 {
       // Letters 'a' through 'm'
       39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -9, -9, -9, -9
   };
+  @SuppressWarnings("unused")
   private final static byte BAD_ENCODING = -9;
 
   // Indicates error in encoding

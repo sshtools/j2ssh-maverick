@@ -170,13 +170,13 @@ public class DiffieHellmanGroup1Sha1 extends SshKeyExchangeClient implements
 		} while (e.compareTo(ONE) < 0 || e.compareTo(p.subtract(ONE)) > 0);
 
 		
-		
+		ByteArrayWriter msg = new ByteArrayWriter();
 		try {
 			
 			dhKeyAgreement.init(dhKeyPair.getPrivate());
 			
 			// Send DH_INIT message
-			ByteArrayWriter msg = new ByteArrayWriter();
+			
 			msg.write(SSH_MSG_KEXDH_INIT);
 			msg.writeBigInteger(e);
 
@@ -189,6 +189,11 @@ public class DiffieHellmanGroup1Sha1 extends SshKeyExchangeClient implements
 			throw new SshException(
 					"JCE reported Diffie Hellman invalid key",
 					SshException.JCE_ERROR);
+		} finally {
+			try {
+				msg.close();
+			} catch (IOException e) {
+			}
 		}
 
 		// Wait for the reply processing any valid transport messages
@@ -229,7 +234,12 @@ public class DiffieHellmanGroup1Sha1 extends SshKeyExchangeClient implements
 			throw new SshException(
 					"Failed to read SSH_MSG_KEXDH_REPLY from message buffer",
 					SshException.INTERNAL_ERROR, ex);
-		}
+		} finally {
+	    	  try {
+	  			bar.close();
+	  		} catch (IOException e) {
+	  		}
+	    }
 	}
 
 	/**

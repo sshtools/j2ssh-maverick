@@ -65,7 +65,7 @@ public class SftpFileInputStream extends InputStream {
 	SftpFile file;
 	SftpSubsystemChannel sftp;
 	long position;
-	Vector outstandingRequests = new Vector();
+	Vector<UnsignedInteger32> outstandingRequests = new Vector<UnsignedInteger32>();
 	SftpMessage currentMessage;
 	int currentMessageRemaining;
 	boolean isEOF = false;

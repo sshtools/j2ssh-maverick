@@ -97,8 +97,9 @@ public class Ssh2DsaPublicKey implements SshDsaPublicKey {
 	 * @todo Implement this com.maverick.ssh.SshPublicKey method
 	 */
 	public byte[] getEncoded() throws SshException {
+		ByteArrayWriter baw = new ByteArrayWriter();
 		try {
-			ByteArrayWriter baw = new ByteArrayWriter();
+			
 			baw.writeString(getAlgorithm());
 			baw.writeBigInteger(pubkey.getParams().getP());
 			baw.writeBigInteger(pubkey.getParams().getQ());
@@ -109,6 +110,11 @@ public class Ssh2DsaPublicKey implements SshDsaPublicKey {
 		} catch (IOException ioe) {
 			throw new SshException("Failed to encoded DSA key",
 					SshException.INTERNAL_ERROR, ioe);
+		} finally {
+  			try {
+  				baw.close();
+  			} catch (IOException e) {
+  			}
 		}
 	}
 
@@ -135,11 +141,13 @@ public class Ssh2DsaPublicKey implements SshDsaPublicKey {
 	 * @todo Implement this com.maverick.ssh.SshPublicKey method
 	 */
 	public void init(byte[] blob, int start, int len) throws SshException {
+		
+		ByteArrayReader bar = new ByteArrayReader(blob, start, len);
+		
 		try {
 			DSAPublicKeySpec dsaKey;
 
 			// Extract the key information
-			ByteArrayReader bar = new ByteArrayReader(blob, start, len);
 			String header = bar.readString();
 
 			if (!header.equals(getAlgorithm())) {
@@ -165,6 +173,11 @@ public class Ssh2DsaPublicKey implements SshDsaPublicKey {
 					"Failed to obtain DSA key instance from JCE",
 					SshException.INTERNAL_ERROR, ex);
 
+		} finally {
+			try {
+				bar.close();
+			} catch (IOException e) {
+			}
 		}
 	}
 
@@ -183,13 +196,15 @@ public class Ssh2DsaPublicKey implements SshDsaPublicKey {
 	 */
 	public boolean verifySignature(byte[] signature, byte[] data) throws
             SshException {
-        try {
+        
+		ByteArrayReader bar = new ByteArrayReader(signature);
+		
+		try {
         	
-
         	if(signature.length != 40  				// 160 bits
         			&& signature.length != 56   	// 224 bits
         			&& signature.length != 64) {   	// 256 bits
-        		ByteArrayReader bar = new ByteArrayReader(signature);
+        		
                 byte[] sig = bar.readBinaryString();
 
                 //log.debug("Signature blob is " + new String(sig));
@@ -243,7 +258,12 @@ public class Ssh2DsaPublicKey implements SshDsaPublicKey {
              return sig.verify(encoded);
          } catch (Exception ex) {
             throw new SshException(SshException.JCE_ERROR, ex);
-        }
+        } finally {
+			try {
+				bar.close();
+			} catch (IOException e) {
+			}
+		}
     }
 
 	public boolean equals(Object obj) {

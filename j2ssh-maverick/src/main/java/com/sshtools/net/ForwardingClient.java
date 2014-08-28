@@ -766,7 +766,7 @@ public class ForwardingClient implements Client {
 
 				ByteArrayReader bar = new ByteArrayReader(tmp);
 
-//				try {
+				try {
 					while (bar.available() > 0) {
 	
 						short family = bar.readShort();
@@ -821,10 +821,10 @@ public class ForwardingClient implements Client {
 							}
 						} 
 					} 
-				} 
-//					finally {
-//					bar.close();
-//				}
+					} finally {
+						bar.close();
+					}
+				}
 				String hostname = "localhost";
 				int screen = 0;
 	

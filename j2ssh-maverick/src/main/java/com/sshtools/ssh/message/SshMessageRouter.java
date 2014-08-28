@@ -48,8 +48,8 @@ public abstract class SshMessageRouter {
   boolean buffered;
   MessagePump messagePump;
   boolean isClosing = false; 
-  Vector activeChannels = new Vector();
-  Vector shutdownHooks = new Vector();
+  Vector<SshAbstractChannel> activeChannels = new Vector<SshAbstractChannel>();
+  Vector<Runnable> shutdownHooks = new Vector<Runnable>();
   boolean verbose = Boolean.valueOf(System.getProperty("maverick.verbose", "false")).booleanValue();
   
   public SshMessageRouter(SshMessageReader reader, int maxChannels, boolean buffered) {

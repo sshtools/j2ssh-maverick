@@ -57,7 +57,7 @@ public class SftpFileOutputStream
   SftpFile file;
   SftpSubsystemChannel sftp;
   long position;
-  Vector outstandingRequests = new Vector();
+  Vector<UnsignedInteger32> outstandingRequests = new Vector<UnsignedInteger32>();
 
   /**
    * Creates a new SftpFileOutputStream object.

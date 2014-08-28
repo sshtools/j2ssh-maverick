@@ -643,112 +643,124 @@ public SftpFileAttributes(SftpSubsystemChannel sftp, ByteArrayReader bar) throws
   public byte[] toByteArray() throws IOException {
     ByteArrayWriter baw = new ByteArrayWriter();
 
-    baw.writeInt(flags);
-
-    if(version > 3)
-        baw.write(type);
-
-    if (isFlagSet(SSH_FILEXFER_ATTR_SIZE)) {
-      baw.write(size.toByteArray());
+    try {
+	    baw.writeInt(flags);
+	
+	    if(version > 3)
+	        baw.write(type);
+	
+	    if (isFlagSet(SSH_FILEXFER_ATTR_SIZE)) {
+	      baw.write(size.toByteArray());
+	    }
+	
+	    if (version <= 3 && isFlagSet(SSH_FILEXFER_ATTR_UIDGID)) {
+	      if (uid != null) {
+	          try {
+	              baw.writeInt(Long.parseLong(uid));
+	          } catch (NumberFormatException ex) {
+	              baw.writeInt(0);
+	          }
+	      }
+	      else {
+	        baw.writeInt(0);
+	      }
+	
+	      if (gid != null) {
+	          try {
+	              baw.writeInt(Long.parseLong(gid));
+	          } catch (NumberFormatException ex) {
+	              baw.writeInt(0);
+	          }
+	      }
+	      else {
+	        baw.writeInt(0);
+	      }
+	    } else if(version > 3 && isFlagSet(SSH_FILEXFER_ATTR_OWNERGROUP)) {
+	        if(uid!=null)
+	            baw.writeString(uid, sftp.getCharsetEncoding());
+	        else
+	            baw.writeString("");
+	
+	        if(gid!=null)
+	            baw.writeString(gid, sftp.getCharsetEncoding());
+	        else
+	            baw.writeString("");
+	    }
+	
+	
+	    if (isFlagSet(SSH_FILEXFER_ATTR_PERMISSIONS)) {
+	      baw.writeInt(permissions.longValue());
+	    }
+	
+	    if (version <= 3 && isFlagSet(SSH_FILEXFER_ATTR_ACCESSTIME)) {
+	      baw.writeInt(atime.longValue());
+	      baw.writeInt(mtime.longValue());
+	    } else if(version > 3) {
+	
+	        if(isFlagSet(SSH_FILEXFER_ATTR_ACCESSTIME)) {
+	            baw.writeUINT64(atime);
+	        }
+	
+	        if(isFlagSet(SSH_FILEXFER_ATTR_SUBSECOND_TIMES)) {
+	            baw.writeUINT32(atime_nano);
+	        }
+	
+	        if(isFlagSet(SSH_FILEXFER_ATTR_CREATETIME)) {
+	            baw.writeUINT64(createtime);
+	        }
+	
+	        if(isFlagSet(SSH_FILEXFER_ATTR_SUBSECOND_TIMES)) {
+	            baw.writeUINT32(createtime_nano);
+	        }
+	
+	        if(isFlagSet(SSH_FILEXFER_ATTR_MODIFYTIME)) {
+	            baw.writeUINT64(mtime);
+	        }
+	
+	        if(isFlagSet(SSH_FILEXFER_ATTR_SUBSECOND_TIMES)) {
+	            baw.writeUINT32(mtime_nano);
+	        }
+	
+	
+	    }
+	
+	    if(isFlagSet(SSH_FILEXFER_ATTR_ACL)) {
+	        ByteArrayWriter tmp = new ByteArrayWriter();
+	        
+	        try {
+		        Enumeration<ACL> e = acls.elements();
+		        tmp.writeInt(acls.size());
+		        while(e.hasMoreElements()) {
+		            ACL acl = e.nextElement();
+		            tmp.writeInt(acl.getType());
+		            tmp.writeInt(acl.getFlags());
+		            tmp.writeInt(acl.getMask());
+		            tmp.writeString(acl.getWho());
+		        }
+		
+		        baw.writeBinaryString(tmp.toByteArray());
+	        } finally {
+	        	tmp.close();
+	        }
+	    }
+	
+	    if(isFlagSet(SSH_FILEXFER_ATTR_EXTENDED)) {
+	        baw.writeInt(extendedAttributes.size());
+	        Enumeration<String> e = extendedAttributes.keys();
+	        while(e.hasMoreElements()) {
+	            String key = e.nextElement();
+	            baw.writeString(key);
+	            baw.writeBinaryString(extendedAttributes.get(key));
+	        }
+	    }
+	
+	    return baw.toByteArray();
+    } finally {
+  			try {
+  				baw.close();
+  			} catch (IOException e) {
+  			}
     }
-
-    if (version <= 3 && isFlagSet(SSH_FILEXFER_ATTR_UIDGID)) {
-      if (uid != null) {
-          try {
-              baw.writeInt(Long.parseLong(uid));
-          } catch (NumberFormatException ex) {
-              baw.writeInt(0);
-          }
-      }
-      else {
-        baw.writeInt(0);
-      }
-
-      if (gid != null) {
-          try {
-              baw.writeInt(Long.parseLong(gid));
-          } catch (NumberFormatException ex) {
-              baw.writeInt(0);
-          }
-      }
-      else {
-        baw.writeInt(0);
-      }
-    } else if(version > 3 && isFlagSet(SSH_FILEXFER_ATTR_OWNERGROUP)) {
-        if(uid!=null)
-            baw.writeString(uid, sftp.getCharsetEncoding());
-        else
-            baw.writeString("");
-
-        if(gid!=null)
-            baw.writeString(gid, sftp.getCharsetEncoding());
-        else
-            baw.writeString("");
-    }
-
-
-    if (isFlagSet(SSH_FILEXFER_ATTR_PERMISSIONS)) {
-      baw.writeInt(permissions.longValue());
-    }
-
-    if (version <= 3 && isFlagSet(SSH_FILEXFER_ATTR_ACCESSTIME)) {
-      baw.writeInt(atime.longValue());
-      baw.writeInt(mtime.longValue());
-    } else if(version > 3) {
-
-        if(isFlagSet(SSH_FILEXFER_ATTR_ACCESSTIME)) {
-            baw.writeUINT64(atime);
-        }
-
-        if(isFlagSet(SSH_FILEXFER_ATTR_SUBSECOND_TIMES)) {
-            baw.writeUINT32(atime_nano);
-        }
-
-        if(isFlagSet(SSH_FILEXFER_ATTR_CREATETIME)) {
-            baw.writeUINT64(createtime);
-        }
-
-        if(isFlagSet(SSH_FILEXFER_ATTR_SUBSECOND_TIMES)) {
-            baw.writeUINT32(createtime_nano);
-        }
-
-        if(isFlagSet(SSH_FILEXFER_ATTR_MODIFYTIME)) {
-            baw.writeUINT64(mtime);
-        }
-
-        if(isFlagSet(SSH_FILEXFER_ATTR_SUBSECOND_TIMES)) {
-            baw.writeUINT32(mtime_nano);
-        }
-
-
-    }
-
-    if(isFlagSet(SSH_FILEXFER_ATTR_ACL)) {
-        ByteArrayWriter tmp = new ByteArrayWriter();
-        Enumeration<ACL> e = acls.elements();
-        tmp.writeInt(acls.size());
-        while(e.hasMoreElements()) {
-            ACL acl = e.nextElement();
-            tmp.writeInt(acl.getType());
-            tmp.writeInt(acl.getFlags());
-            tmp.writeInt(acl.getMask());
-            tmp.writeString(acl.getWho());
-        }
-
-        baw.writeBinaryString(tmp.toByteArray());
-    }
-
-    if(isFlagSet(SSH_FILEXFER_ATTR_EXTENDED)) {
-        baw.writeInt(extendedAttributes.size());
-        Enumeration<String> e = extendedAttributes.keys();
-        while(e.hasMoreElements()) {
-            String key = e.nextElement();
-            baw.writeString(key);
-            baw.writeBinaryString(extendedAttributes.get(key));
-        }
-    }
-
-    return baw.toByteArray();
   }
 
   private int octal(int v, int r) {

@@ -229,7 +229,8 @@ public class ComponentFactory implements Cloneable {
       order.removeAllElements();
   }
 
-  public Object clone() {
+  @SuppressWarnings("unchecked")
+	public Object clone() {
 	  ComponentFactory clone=new ComponentFactory(type);
 	  clone.order=(Vector<Object>) order.clone();
 	  clone.supported=(Hashtable<String, Class<?>>) supported.clone();

@@ -92,8 +92,9 @@ public class SshPublicKeyFileFactory {
    */
   public static SshPublicKey decodeSSH2PublicKey(byte[] encoded) throws
   IOException {
+	  	ByteArrayReader bar = new ByteArrayReader(encoded);
 		try {
-		    ByteArrayReader bar = new ByteArrayReader(encoded);
+		    
 		    String algorithm = bar.readString();
 		
 		    try {
@@ -105,7 +106,12 @@ public class SshPublicKeyFileFactory {
 		    }
 		} catch (OutOfMemoryError ex2) {
 		    throw new IOException("An error occurred parsing a public key file! Is the file corrupt?");
-		}
+		} finally {
+  			try {
+  				bar.close();
+  			} catch (IOException e) {
+  			}
+      }
 	}
   
   

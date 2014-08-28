@@ -22,9 +22,9 @@ package com.sshtools.ssh.components;
 
 import java.math.BigInteger;
 import java.util.Hashtable;
-
 import com.sshtools.util.UnsignedInteger32;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class DiffieHellmanGroups {
 
 	public static final BigInteger group1 = new BigInteger(

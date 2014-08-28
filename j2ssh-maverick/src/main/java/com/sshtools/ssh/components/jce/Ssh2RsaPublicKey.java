@@ -75,8 +75,9 @@ public class Ssh2RsaPublicKey implements SshRsaPublicKey {
 	 * @see com.maverick.ssh.publickey.RsaPublicKey#getEncoded()
 	 */
 	public byte[] getEncoded() throws SshException {
+		ByteArrayWriter baw = new ByteArrayWriter();
 		try {
-			ByteArrayWriter baw = new ByteArrayWriter();
+			
 			baw.writeString(getAlgorithm());
 			baw.writeBigInteger(pubKey.getPublicExponent());
 			baw.writeBigInteger(pubKey.getModulus());
@@ -85,6 +86,11 @@ public class Ssh2RsaPublicKey implements SshRsaPublicKey {
 		} catch (IOException ex) {
 			throw new SshException("Failed to encoded key data",
 					SshException.INTERNAL_ERROR, ex);
+		} finally {
+			try {
+				baw.close();
+			} catch (IOException e) {
+			}
 		}
 	}
 
@@ -103,12 +109,13 @@ public class Ssh2RsaPublicKey implements SshRsaPublicKey {
 	 */
 	public void init(byte[] blob, int start, int len) throws SshException {
 
+		ByteArrayReader bar = new ByteArrayReader(blob, start, len);
+		
 		try {
 			// this.hostKey = hostKey;
 			RSAPublicKeySpec rsaKey;
 
 			// Extract the key information
-			ByteArrayReader bar = new ByteArrayReader(blob, start, len);
 			String header = bar.readString();
 
 			if (!header.equals(getAlgorithm())) {
@@ -134,6 +141,11 @@ public class Ssh2RsaPublicKey implements SshRsaPublicKey {
 		} catch (IOException ioe) {
 			throw new SshException("Failed to read encoded key data",
 					SshException.INTERNAL_ERROR);
+		} finally {
+			try {
+				bar.close();
+			} catch (IOException e) {
+			}
 		}
 
 	}
@@ -144,10 +156,10 @@ public class Ssh2RsaPublicKey implements SshRsaPublicKey {
 
 	public boolean verifySignature(byte[] signature, byte[] data)
 			throws SshException {
+		ByteArrayReader bar = new ByteArrayReader(signature);
 		try {
 			// Check for older versions of the transport protocol
 			if (signature.length != 128) {
-				ByteArrayReader bar = new ByteArrayReader(signature);
 				byte[] sig = bar.readBinaryString();
 				@SuppressWarnings("unused")
 				String header = new String(sig);
@@ -166,6 +178,11 @@ public class Ssh2RsaPublicKey implements SshRsaPublicKey {
 			
 		} catch (Exception ex) {
 			throw new SshException(SshException.JCE_ERROR, ex);
+		} finally {
+			try {
+				bar.close();
+			} catch (IOException e) {
+			}
 		}
 
 	}
