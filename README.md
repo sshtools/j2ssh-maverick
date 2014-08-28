@@ -36,7 +36,7 @@ For product update notifications follow us on Twitter https://www.twitter.com/ja
 Author
 ------
 
-Lee Painter is the original author of the J2SSH API and founder of SSHTOOLS Limited. He has extensive experience in Java network security development, developing our client and server APIs as well as the being the architect and founder of open source projects such as SSL-Explorer http://sourceforge.net/projects/sslexplorer/ and the Hypersocket Framework https://github.com/ludup/hypersocket-framework
+Lee Painter is the original author of the J2SSH API and founder of SSHTOOLS Limited. He has extensive experience in Java network security development, developing our client and server APIs as well as the being the architect and founder of open source projects such as SSL-Explorer and more recently the Hypersocket Framework https://github.com/ludup/hypersocket-framework
 
 https://www.twitter.com/LeeDavidPainter
 
