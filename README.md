@@ -30,3 +30,13 @@ This code was branched from our commercial codebase on August 27th 2014 and conv
 
 For more information visit our website at https://www.sshtools.com/
 
+For product update notifications follow us on Twitter https://www.twitter.com/javassh
+
+
+Author
+------
+
+Lee Painter is the original author of the J2SSH API and has extensive experience in Java and SSH development, developing client and server APIs as well as other network security applications. 
+
+https://www.twitter.com/LeeDavidPainter
+
