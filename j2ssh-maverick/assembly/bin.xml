@@ -1,0 +1,90 @@
+<!--
+
+    Copyright 2003-2014 SSHTOOLS Limited. All Rights Reserved.
+
+    For product documentation visit https://www.sshtools.com/
+
+    This file is part of J2SSH Maverick.
+
+    J2SSH Maverick is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    J2SSH Maverick is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with J2SSH Maverick.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<assembly
+	xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/2.2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
+	<id>bin</id>
+	<formats>
+		<format>zip</format>
+	</formats>
+
+	<includeBaseDirectory>false</includeBaseDirectory>
+	<fileSets>
+		<fileSet>
+			<directory>..</directory>
+			<outputDirectory>${distributionFileName}</outputDirectory>
+			<includes>
+				<include>LICENSE</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>.</directory>
+			<outputDirectory>${distributionFileName}</outputDirectory>
+			<includes>
+				<include>CHANGES</include>
+				<include>README</include>
+			</includes>
+		</fileSet>
+		
+		<!-- Examples -->
+		<fileSet>
+			<directory>src/main/examples</directory>
+			<outputDirectory>${distributionFileName}/examples
+			</outputDirectory>
+		</fileSet>
+
+		<!-- Javadoc -->
+		<fileSet>
+			<directory>target/apidocs</directory>
+			<outputDirectory>${distributionFileName}/javadocs
+			</outputDirectory>
+		</fileSet>
+
+		<!-- Maverick artifacts -->
+		<fileSet>
+			<directory>target</directory>
+			<outputDirectory>${distributionFileName}/dist
+			</outputDirectory>
+			<includes>
+				<include>${distributionFileName}.jar</include>
+			</includes>
+		</fileSet>
+	</fileSets>
+
+	<dependencySets>
+		<dependencySet>
+			<excludes>
+				<exclude>com.sshtools:*</exclude>
+				<exclude>org.apache.maven.scm:*</exclude>
+				<exclude>org.codehaus.plexus:*</exclude>
+				<exclude>regexp:*</exclude>
+			</excludes>
+			<unpack>false</unpack>
+			<useProjectArtifact>false</useProjectArtifact>
+			<useTransitiveDependencies>true</useTransitiveDependencies>
+			<outputDirectory>${distributionFileName}/lib
+			</outputDirectory>
+		</dependencySet>
+	</dependencySets>
+</assembly>

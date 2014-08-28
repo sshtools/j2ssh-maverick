@@ -138,7 +138,7 @@ public final class SshConnector {
    * @see com.sshtools.ssh2.Ssh2Client
    * @throws SshException
    */
-  public SshClient connect(SshTransport transport, String username)
+  public Ssh2Client connect(SshTransport transport, String username)
      throws SshException {
     return connect(transport, username, false, null);
   }
@@ -212,7 +212,7 @@ public final class SshConnector {
    * @return SshClient
    * @throws SshException
    */
-  public SshClient connect(SshTransport transport,
+  public Ssh2Client connect(SshTransport transport,
                            String username,
                            boolean buffered,
                            SshContext context) throws SshException {
@@ -223,7 +223,7 @@ public final class SshConnector {
   	//#endif
 	
  // Lets first try SSH2 cause its a better protocol
-    SshClient client;
+    Ssh2Client client;
     String localIdentification = null;
     String remoteIdentification = null;
     

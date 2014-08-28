@@ -6,9 +6,12 @@ J2SSH Maverick 1.5.0 - TBC
 
 Features
     o New open source branch converted to maven.
+    o Converted source to 1.5 source compatibility. 
+    o Renamed all base packages to com.sshtools.
     
 Bug Fixes
-	o Automatically attempt to add BouncyCastle JCE provider if found in classpath. If not installed, there may no large prime support for some Diffie Hellman algorithms.
+	o Automatically attempt to add BouncyCastle JCE provider if found in class path. If not installed, there may no large prime support for some Diffie Hellman algorithms.
+	o Evaluated and removed all java warnings through either re-factor or suppression.
 	
 =================
 =  HISTORY      =
