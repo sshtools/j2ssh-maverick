@@ -36,7 +36,7 @@ For product update notifications follow us on Twitter https://www.twitter.com/ja
 Author
 ------
 
-Lee Painter is the original author of the J2SSH API and has extensive experience in Java and SSH development, developing client and server APIs as well as other network security applications. 
+Lee Painter is the original author of the J2SSH API and founder of SSHTOOLS Limited. He has extensive experience in Java and SSH development, developing client and server APIs as well as other network security applications.
 
 https://www.twitter.com/LeeDavidPainter
 
