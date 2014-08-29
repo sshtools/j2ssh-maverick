@@ -31,8 +31,10 @@ import com.sshtools.ssh.SshException;
  */
 public interface SshRsaPublicKey extends SshPublicKey {
 	BigInteger getModulus();
+
 	BigInteger getPublicExponent();
+
 	int getVersion();
-	
+
 	public BigInteger doPublic(BigInteger input) throws SshException;
 }

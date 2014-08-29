@@ -25,9 +25,9 @@ import java.math.BigInteger;
 import com.sshtools.ssh.SshException;
 
 /**
- * This interface should be implemented by all RSA private co-efficient
- * private key implementations. 
- *  
+ * This interface should be implemented by all RSA private co-efficient private
+ * key implementations.
+ * 
  * @author Lee David Painter
  */
 public interface SshRsaPrivateCrtKey extends SshRsaPrivateKey {
@@ -43,6 +43,6 @@ public interface SshRsaPrivateCrtKey extends SshRsaPrivateKey {
 	public BigInteger getPrimeExponentQ();
 
 	public BigInteger getCrtCoefficient();
-	
+
 	BigInteger doPrivate(BigInteger input) throws SshException;
 }

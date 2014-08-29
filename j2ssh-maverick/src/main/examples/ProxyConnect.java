@@ -33,16 +33,18 @@ import com.sshtools.ssh.SshException;
 import com.sshtools.ssh.SshSession;
 import com.sshtools.ssh.components.SshPublicKey;
 import com.sshtools.ssh2.Ssh2Context;
+
 /**
  * This example demonstrates how to connect through a proxy.
- *
+ * 
  * @author Lee David Painter
  */
 public class ProxyConnect {
 
 	public static void main(String[] args) {
 
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(
+				System.in));
 
 		try {
 
@@ -51,16 +53,17 @@ public class ProxyConnect {
 
 			int idx = hostname.indexOf(':');
 			int port = 22;
-			if(idx > -1) {
-				port = Integer.parseInt(hostname.substring(idx+1));
+			if (idx > -1) {
+				port = Integer.parseInt(hostname.substring(idx + 1));
 				hostname = hostname.substring(0, idx);
 
 			}
 
-			System.out.print("Username [Enter for " + System.getProperty("user.name") + "]: ");
+			System.out.print("Username [Enter for "
+					+ System.getProperty("user.name") + "]: ");
 			String username = reader.readLine();
 
-			if(username==null || username.trim().equals(""))
+			if (username == null || username.trim().equals(""))
 				username = System.getProperty("user.name");
 
 			System.out.println("Connecting to " + hostname);
@@ -72,25 +75,28 @@ public class ProxyConnect {
 
 			// Lets do some host key verification
 			HostKeyVerification hkv = new HostKeyVerification() {
-			public boolean verifyHost(String hostname, SshPublicKey key) {
-				try {
-					System.out.println("The connected host's key (" + key.getAlgorithm() + ") is");
-					System.out.println(key.getFingerprint());
-				} catch (SshException e) {
-					e.printStackTrace();
+				public boolean verifyHost(String hostname, SshPublicKey key) {
+					try {
+						System.out.println("The connected host's key ("
+								+ key.getAlgorithm() + ") is");
+						System.out.println(key.getFingerprint());
+					} catch (SshException e) {
+						e.printStackTrace();
+					}
+					return true;
 				}
-				return true;
-			}
 			};
 
 			con.getContext().setHostKeyVerification(hkv);
-			con.getContext().setPreferredPublicKey(Ssh2Context.PUBLIC_KEY_SSHDSS);
+			con.getContext().setPreferredPublicKey(
+					Ssh2Context.PUBLIC_KEY_SSHDSS);
 
 			/**
 			 * Connect to the host
 			 */
-			SshClient ssh = con.connect(HttpProxyTransport.connectViaProxy(hostname, port,
-                                "mars", 8080, "user", "password", "J2SSH Maverick"), username);
+			SshClient ssh = con.connect(HttpProxyTransport.connectViaProxy(
+					hostname, port, "mars", 8080, "user", "password",
+					"J2SSH Maverick"), username);
 
 			/**
 			 * Authenticate the user using password authentication
@@ -100,30 +106,28 @@ public class ProxyConnect {
 			do {
 				System.out.print("Password: ");
 				pwd.setPassword(reader.readLine());
-			}
-			while(ssh.authenticate(pwd)!=SshAuthentication.COMPLETE
+			} while (ssh.authenticate(pwd) != SshAuthentication.COMPLETE
 					&& ssh.isConnected());
 
 			/**
 			 * Start a session and do basic IO
 			 */
-			if(ssh.isAuthenticated()) {
+			if (ssh.isAuthenticated()) {
 
 				SshSession session = ssh.openSessionChannel();
-				session.requestPseudoTerminal("vt100",80,24,0,0);
+				session.requestPseudoTerminal("vt100", 80, 24, 0, 0);
 				session.startShell();
-
 
 				final InputStream in = session.getInputStream();
 				Thread t = new Thread(new Runnable() {
 					public void run() {
 						try {
 							int read;
-							while((read = in.read()) > -1) {
-								if(read > 0)
-									System.out.print((char)read);
+							while ((read = in.read()) > -1) {
+								if (read > 0)
+									System.out.print((char) read);
 							}
-						} catch(Throwable t1) {
+						} catch (Throwable t1) {
 							t1.printStackTrace();
 						} finally {
 							System.exit(0);
@@ -133,20 +137,16 @@ public class ProxyConnect {
 				});
 				t.start();
 				int read;
-				while((read = System.in.read()) > -1) {
+				while ((read = System.in.read()) > -1) {
 					session.getOutputStream().write(read);
 				}
 
 				System.exit(0);
 			}
 
-
-			} catch(Throwable th) {
+		} catch (Throwable th) {
 			th.printStackTrace();
 		}
 	}
 
 }
-
-
-

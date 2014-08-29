@@ -34,178 +34,178 @@ import java.util.Hashtable;
 import com.sshtools.ssh.SshTransport;
 
 /**
- * Provides an {@link com.sshtools.ssh.SshTransport} implementation that can route the connection
- * through a HTTP proxy.
- *
- * To connect the transport simply call the {@link connectViaProxy(String, int, String, int, String, String, String)}
- * method. You can pass the name of your application as the user agent and if no authentication
- * is required simply pass ""
- *
+ * Provides an {@link com.sshtools.ssh.SshTransport} implementation that can
+ * route the connection through a HTTP proxy.
+ * 
+ * To connect the transport simply call the {@link connectViaProxy(String, int,
+ * String, int, String, String, String)} method. You can pass the name of your
+ * application as the user agent and if no authentication is required simply
+ * pass ""
+ * 
  * @author Lee David Painter
  */
 public class HttpProxyTransport extends Socket implements SshTransport {
-    private String proxyHost;
-    private int proxyPort;
-    private String remoteHost;
-    private int remotePort;
-    private HttpResponse responseHeader;
-    private String username;
-    private String password;
-    private String userAgent;
-    private HttpRequest request = new HttpRequest();
-    private Hashtable<String,String> optionalHeaders;
+	private String proxyHost;
+	private int proxyPort;
+	private String remoteHost;
+	private int remotePort;
+	private HttpResponse responseHeader;
+	private String username;
+	private String password;
+	private String userAgent;
+	private HttpRequest request = new HttpRequest();
+	private Hashtable<String, String> optionalHeaders;
 
-    private static int connectionTimeout = 30000;
-    
-    private HttpProxyTransport(String host, int port, String proxyHost,
-        int proxyPort) throws IOException, UnknownHostException {
-        this.proxyHost = proxyHost;
-        this.proxyPort = proxyPort;
-        this.remoteHost = host;
-        this.remotePort = port;
+	private static int connectionTimeout = 30000;
 
-        connect(new InetSocketAddress(proxyHost, proxyPort), connectionTimeout);
-        setSoTimeout(connectionTimeout);
-    }
+	private HttpProxyTransport(String host, int port, String proxyHost,
+			int proxyPort) throws IOException, UnknownHostException {
+		this.proxyHost = proxyHost;
+		this.proxyPort = proxyPort;
+		this.remoteHost = host;
+		this.remotePort = port;
 
-    public static void setConnectionTimeout(int connectionTimeout) {
-    	HttpProxyTransport.connectionTimeout = connectionTimeout;
-    }
-    
-    public static int getConnectionTimeout() {
-    	return connectionTimeout;
-    }
-    
-    /**
-     * Connect the socket to a HTTP proxy and request forwarding to our
-     * remote host.
-     * @param host
-     * @param port
-     * @param proxyHost
-     * @param proxyPort
-     * @param username
-     * @param password
-     * @param userAgent
-     * @return HttpProxyTransport
-     * @throws IOException
-     * @throws UnknownHostException
-     */
-    public static HttpProxyTransport connectViaProxy(String host,
-            int port, String proxyHost, int proxyPort,
-            String username, String password, String userAgent)
-            throws IOException, UnknownHostException {
-    	return connectViaProxy(host, port, proxyHost, proxyPort, username, password, userAgent, null);
-    }
-    
-    
-    /**
-     * 
-     * @param host
-     * @param port
-     * @param proxyHost
-     * @param proxyPort
-     * @param username
-     * @param password
-     * @param userAgent
-     * @param optionalHeaders
-     * @return
-     * @throws IOException
-     * @throws UnknownHostException
-     */
-    public static HttpProxyTransport connectViaProxy(String host,
-        int port, String proxyHost, int proxyPort,
-        String username, String password, String userAgent, Hashtable<String,String> optionalHeaders)
-        throws IOException, UnknownHostException {
-        HttpProxyTransport socket = new HttpProxyTransport(host,
-                port, proxyHost, proxyPort);
-        int status;
-        socket.username = username;
-        socket.password = password;
-        socket.userAgent = userAgent;
-        socket.optionalHeaders = optionalHeaders;
+		connect(new InetSocketAddress(proxyHost, proxyPort), connectionTimeout);
+		setSoTimeout(connectionTimeout);
+	}
 
-        try {
-            InputStream in = socket.getInputStream();
-            OutputStream out = socket.getOutputStream();
-            
+	public static void setConnectionTimeout(int connectionTimeout) {
+		HttpProxyTransport.connectionTimeout = connectionTimeout;
+	}
 
-            socket.request.setHeaderBegin("CONNECT " + host + ":" + port +
-                " HTTP/1.0");
-            socket.request.setHeaderField("User-Agent", userAgent);
-            socket.request.setHeaderField("Pragma", "No-Cache");
-            socket.request.setHeaderField("Host", host);
-            socket.request.setHeaderField("Proxy-Connection", "Keep-Alive");
-            
-            if(optionalHeaders!=null) {
-            	for(Enumeration<String> e = optionalHeaders.keys();e.hasMoreElements();) {
-            		String h = e.nextElement();
-            		socket.request.setHeaderField(h, optionalHeaders.get(h));
-            	}
-            }
-            out.write(socket.request.toString().getBytes());
-            out.flush();
-            socket.responseHeader = new HttpResponse(in);
+	public static int getConnectionTimeout() {
+		return connectionTimeout;
+	}
 
-            if (socket.responseHeader.getStatus() == 407) {
-                String realm = socket.responseHeader.getAuthenticationRealm();
-                String method = socket.responseHeader.getAuthenticationMethod();
+	/**
+	 * Connect the socket to a HTTP proxy and request forwarding to our remote
+	 * host.
+	 * 
+	 * @param host
+	 * @param port
+	 * @param proxyHost
+	 * @param proxyPort
+	 * @param username
+	 * @param password
+	 * @param userAgent
+	 * @return HttpProxyTransport
+	 * @throws IOException
+	 * @throws UnknownHostException
+	 */
+	public static HttpProxyTransport connectViaProxy(String host, int port,
+			String proxyHost, int proxyPort, String username, String password,
+			String userAgent) throws IOException, UnknownHostException {
+		return connectViaProxy(host, port, proxyHost, proxyPort, username,
+				password, userAgent, null);
+	}
 
-                if (realm == null) {
-                    realm = "";
-                }
+	/**
+	 * 
+	 * @param host
+	 * @param port
+	 * @param proxyHost
+	 * @param proxyPort
+	 * @param username
+	 * @param password
+	 * @param userAgent
+	 * @param optionalHeaders
+	 * @return
+	 * @throws IOException
+	 * @throws UnknownHostException
+	 */
+	public static HttpProxyTransport connectViaProxy(String host, int port,
+			String proxyHost, int proxyPort, String username, String password,
+			String userAgent, Hashtable<String, String> optionalHeaders)
+			throws IOException, UnknownHostException {
+		HttpProxyTransport socket = new HttpProxyTransport(host, port,
+				proxyHost, proxyPort);
+		int status;
+		socket.username = username;
+		socket.password = password;
+		socket.userAgent = userAgent;
+		socket.optionalHeaders = optionalHeaders;
 
-                if (method.equalsIgnoreCase("basic")) {
-                    socket.close();
-                    socket = new HttpProxyTransport(host, port, proxyHost,
-                            proxyPort);
-                    in = socket.getInputStream();
-                    out = socket.getOutputStream();
-                    socket.request.setBasicAuthentication(username, password);
-                    out.write(socket.request.toString().getBytes());
-                    out.flush();
-                    socket.responseHeader = new HttpResponse(in);
-                } else if (method.equalsIgnoreCase("digest")) {
-                    throw new IOException(
-                        "Digest authentication is not supported");
-                } else {
-                    throw new IOException("'" + method + "' is not supported");
-                }
-            }
+		try {
+			InputStream in = socket.getInputStream();
+			OutputStream out = socket.getOutputStream();
 
-            status = socket.responseHeader.getStatus();
-           
-        } catch (SocketException e) {
-            throw new SocketException("Error communicating with proxy server " +
-                proxyHost + ":" + proxyPort + " (" + e.getMessage() + ")");
-        }
+			socket.request.setHeaderBegin("CONNECT " + host + ":" + port
+					+ " HTTP/1.0");
+			socket.request.setHeaderField("User-Agent", userAgent);
+			socket.request.setHeaderField("Pragma", "No-Cache");
+			socket.request.setHeaderField("Host", host);
+			socket.request.setHeaderField("Proxy-Connection", "Keep-Alive");
 
-        if ((status < 200) || (status > 299)) {
-            throw new IOException("Proxy tunnel setup failed: " +
-                socket.responseHeader.getStartLine());
-        }
+			if (optionalHeaders != null) {
+				for (Enumeration<String> e = optionalHeaders.keys(); e
+						.hasMoreElements();) {
+					String h = e.nextElement();
+					socket.request.setHeaderField(h, optionalHeaders.get(h));
+				}
+			}
+			out.write(socket.request.toString().getBytes());
+			out.flush();
+			socket.responseHeader = new HttpResponse(in);
 
-        socket.setSoTimeout(0);
-        return socket;
-    }
+			if (socket.responseHeader.getStatus() == 407) {
+				String realm = socket.responseHeader.getAuthenticationRealm();
+				String method = socket.responseHeader.getAuthenticationMethod();
 
-    public String toString() {
-        return "HTTPProxySocket [Proxy IP=" + getInetAddress() +
-        ",Proxy Port=" + getPort() + ",localport=" + getLocalPort() +
-        "Remote Host=" + remoteHost + "Remote Port=" +
-        String.valueOf(remotePort) + "]";
-    }
-  
-    HttpHeader getResponseHeader() {
-        return responseHeader;
-    }
+				if (realm == null) {
+					realm = "";
+				}
 
+				if (method.equalsIgnoreCase("basic")) {
+					socket.close();
+					socket = new HttpProxyTransport(host, port, proxyHost,
+							proxyPort);
+					in = socket.getInputStream();
+					out = socket.getOutputStream();
+					socket.request.setBasicAuthentication(username, password);
+					out.write(socket.request.toString().getBytes());
+					out.flush();
+					socket.responseHeader = new HttpResponse(in);
+				} else if (method.equalsIgnoreCase("digest")) {
+					throw new IOException(
+							"Digest authentication is not supported");
+				} else {
+					throw new IOException("'" + method + "' is not supported");
+				}
+			}
 
-    public String getHost() {
-        return remoteHost;
-    }
+			status = socket.responseHeader.getStatus();
 
-    public SshTransport duplicate() throws IOException {
-      return connectViaProxy(remoteHost, remotePort, proxyHost, proxyPort,
-                             username, password, userAgent, optionalHeaders);
-    }
+		} catch (SocketException e) {
+			throw new SocketException("Error communicating with proxy server "
+					+ proxyHost + ":" + proxyPort + " (" + e.getMessage() + ")");
+		}
+
+		if ((status < 200) || (status > 299)) {
+			throw new IOException("Proxy tunnel setup failed: "
+					+ socket.responseHeader.getStartLine());
+		}
+
+		socket.setSoTimeout(0);
+		return socket;
+	}
+
+	public String toString() {
+		return "HTTPProxySocket [Proxy IP=" + getInetAddress() + ",Proxy Port="
+				+ getPort() + ",localport=" + getLocalPort() + "Remote Host="
+				+ remoteHost + "Remote Port=" + String.valueOf(remotePort)
+				+ "]";
+	}
+
+	HttpHeader getResponseHeader() {
+		return responseHeader;
+	}
+
+	public String getHost() {
+		return remoteHost;
+	}
+
+	public SshTransport duplicate() throws IOException {
+		return connectViaProxy(remoteHost, remotePort, proxyHost, proxyPort,
+				username, password, userAgent, optionalHeaders);
+	}
 }

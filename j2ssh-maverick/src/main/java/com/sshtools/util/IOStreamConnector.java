@@ -28,231 +28,228 @@ import java.io.OutputStream;
 import java.util.Vector;
 
 /**
- *  Connects an input stream to an outputstream.
- *  Reads from in stream and writes to out stream.
- *
+ * Connects an input stream to an outputstream. Reads from in stream and writes
+ * to out stream.
+ * 
  * @author Lee David Painter
  */
 public class IOStreamConnector {
 
-  private InputStream in = null;
-  private OutputStream out = null;
-  private Thread thread;
-  private long bytes;
-  private boolean closeInput = true;
-  private boolean closeOutput = true;
-  boolean running = false;
-  boolean closed = false;
-  Throwable lastError;
-  public static final int DEFAULT_BUFFER_SIZE = 32768;
-  int BUFFER_SIZE = DEFAULT_BUFFER_SIZE;
+	private InputStream in = null;
+	private OutputStream out = null;
+	private Thread thread;
+	private long bytes;
+	private boolean closeInput = true;
+	private boolean closeOutput = true;
+	boolean running = false;
+	boolean closed = false;
+	Throwable lastError;
+	public static final int DEFAULT_BUFFER_SIZE = 32768;
+	int BUFFER_SIZE = DEFAULT_BUFFER_SIZE;
 
-  /**  */
-  protected Vector<IOStreamConnectorListener> listenerList = new Vector<IOStreamConnectorListener>();
+	/**  */
+	protected Vector<IOStreamConnectorListener> listenerList = new Vector<IOStreamConnectorListener>();
 
-  /**
-   * Creates a new IOStreamConnector object.
-   */
-  public IOStreamConnector() {
-  }
+	/**
+	 * Creates a new IOStreamConnector object.
+	 */
+	public IOStreamConnector() {
+	}
 
-  /**
-   * Creates a new IOStreamConnector object.
-   *
-   * @param in
-   * @param out
-   */
-  public IOStreamConnector(InputStream in, OutputStream out) {
-    connect(in, out);
-  }
+	/**
+	 * Creates a new IOStreamConnector object.
+	 * 
+	 * @param in
+	 * @param out
+	 */
+	public IOStreamConnector(InputStream in, OutputStream out) {
+		connect(in, out);
+	}
 
-  /**
-   *
-   *
-   * @return
-   */
-  /* public IOStreamConnectorState getState() {
-     return state;
-   }*/
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
+	/*
+	 * public IOStreamConnectorState getState() { return state; }
+	 */
 
-  public void close() {
-    if(thread==null) {
-    	closed=true;
-    }
-    
-	running = false;
+	public void close() {
+		if (thread == null) {
+			closed = true;
+		}
 
-    if (thread != null) {
-      thread.interrupt();
-    }
-  }
+		running = false;
 
-  /**
-   * 
-   * @return IOException
-   */
-  public Throwable getLastError() {
-    return lastError;
-  }
+		if (thread != null) {
+			thread.interrupt();
+		}
+	}
 
-  /**
-   *
-   *
-   * @param closeInput
-   */
-  public void setCloseInput(boolean closeInput) {
-    this.closeInput = closeInput;
-  }
+	/**
+	 * 
+	 * @return IOException
+	 */
+	public Throwable getLastError() {
+		return lastError;
+	}
 
-  /**
-   *
-   *
-   * @param closeOutput
-   */
-  public void setCloseOutput(boolean closeOutput) {
-    this.closeOutput = closeOutput;
-  }
+	/**
+	 * 
+	 * 
+	 * @param closeInput
+	 */
+	public void setCloseInput(boolean closeInput) {
+		this.closeInput = closeInput;
+	}
 
-  public void setBufferSize(int numbytes) {
-    if (numbytes <= 0) {
-      throw new IllegalArgumentException(
-          "Buffer size must be greater than zero!");
-    }
+	/**
+	 * 
+	 * 
+	 * @param closeOutput
+	 */
+	public void setCloseOutput(boolean closeOutput) {
+		this.closeOutput = closeOutput;
+	}
 
-    BUFFER_SIZE = numbytes;
-  }
+	public void setBufferSize(int numbytes) {
+		if (numbytes <= 0) {
+			throw new IllegalArgumentException(
+					"Buffer size must be greater than zero!");
+		}
 
-  /**
-   *
-   *
-   * @param in
-   * @param out
-   */
-  public void connect(InputStream in, OutputStream out) {
-    this.in = in;
-    this.out = out;
+		BUFFER_SIZE = numbytes;
+	}
 
-    thread = new Thread(new IOStreamConnectorThread());
-    thread.setDaemon(true);
-    thread.setName("IOStreamConnector " + in.toString() + ">>" + out.toString());
-    thread.start();
-  }
+	/**
+	 * 
+	 * 
+	 * @param in
+	 * @param out
+	 */
+	public void connect(InputStream in, OutputStream out) {
+		this.in = in;
+		this.out = out;
 
-  /**
-   *
-   *
-   * @return long
-   */
-  public long getBytes() {
-    return bytes;
-  }
+		thread = new Thread(new IOStreamConnectorThread());
+		thread.setDaemon(true);
+		thread.setName("IOStreamConnector " + in.toString() + ">>"
+				+ out.toString());
+		thread.start();
+	}
 
-  public boolean isClosed() {
-    return closed;
-  }
+	/**
+	 * 
+	 * 
+	 * @return long
+	 */
+	public long getBytes() {
+		return bytes;
+	}
 
-  /**
-   *
-   *
-   * @param l
-   */
-  public void addListener(IOStreamConnectorListener l) {
-    listenerList.addElement(l);
-  }
+	public boolean isClosed() {
+		return closed;
+	}
 
-  /**
-   *
-   *
-   * @param l
-   */
-  public void removeListener(IOStreamConnectorListener l) {
-    listenerList.removeElement(l);
-  }
+	/**
+	 * 
+	 * 
+	 * @param l
+	 */
+	public void addListener(IOStreamConnectorListener l) {
+		listenerList.addElement(l);
+	}
 
-  class IOStreamConnectorThread
-      implements Runnable {
+	/**
+	 * 
+	 * 
+	 * @param l
+	 */
+	public void removeListener(IOStreamConnectorListener l) {
+		listenerList.removeElement(l);
+	}
 
-    public void run() {
-      byte[] buffer = new byte[BUFFER_SIZE];
-      int read = 0;
-      running = true;
+	class IOStreamConnectorThread implements Runnable {
 
-      
-      while (running) {
-        try {
-          // Block
-          read = in.read(buffer, 0, buffer.length);
+		public void run() {
+			byte[] buffer = new byte[BUFFER_SIZE];
+			int read = 0;
+			running = true;
 
-          if (read > 0) {
+			while (running) {
+				try {
+					// Block
+					read = in.read(buffer, 0, buffer.length);
 
-            // Write it
-            out.write(buffer, 0, read);
+					if (read > 0) {
 
-            // Record it
-            bytes += read;
+						// Write it
+						out.write(buffer, 0, read);
 
-            // Flush it
-            out.flush();
+						// Record it
+						bytes += read;
 
-            // Inform all of the listeners
-            for (int i = 0; i < listenerList.size(); i++) {
-              ( (IOStreamConnectorListener) listenerList.elementAt(i)).
-                  dataTransfered(buffer, read);
-            }
-          }
-          else {
-            if (read < 0) {
-              running = false;
-            }
-          }
-        }
-        catch(InterruptedIOException ex) {
-            for (int i = 0; i < listenerList.size(); i++) {
-                ( (IOStreamConnectorListener) listenerList.elementAt(i)).
-                    connectorTimeout(IOStreamConnector.this);
-              }
-        } catch (Throwable ioe) {
-          // only log the error if were supposed to be connected
-          if (running) {
-            lastError = ioe;
-            running = false;
-          }
+						// Flush it
+						out.flush();
 
-        }
-      }
+						// Inform all of the listeners
+						for (int i = 0; i < listenerList.size(); i++) {
+							((IOStreamConnectorListener) listenerList
+									.elementAt(i)).dataTransfered(buffer, read);
+						}
+					} else {
+						if (read < 0) {
+							running = false;
+						}
+					}
+				} catch (InterruptedIOException ex) {
+					for (int i = 0; i < listenerList.size(); i++) {
+						((IOStreamConnectorListener) listenerList.elementAt(i))
+								.connectorTimeout(IOStreamConnector.this);
+					}
+				} catch (Throwable ioe) {
+					// only log the error if were supposed to be connected
+					if (running) {
+						lastError = ioe;
+						running = false;
+					}
 
-      if (closeInput) {
-        try {
-          in.close();
-        }
-        catch (IOException ex) {}
-      }
+				}
+			}
 
-      if (closeOutput) {
-        try {
-          out.close();
-        }
-        catch (IOException ex) {}
-      }
+			if (closeInput) {
+				try {
+					in.close();
+				} catch (IOException ex) {
+				}
+			}
 
-      closed = true;
+			if (closeOutput) {
+				try {
+					out.close();
+				} catch (IOException ex) {
+				}
+			}
 
-      for (int i = 0; i < listenerList.size(); i++) {
-        ( (IOStreamConnectorListener) listenerList.elementAt(i)).
-            connectorClosed(IOStreamConnector.this);
-      }
+			closed = true;
 
-      thread = null;
+			for (int i = 0; i < listenerList.size(); i++) {
+				((IOStreamConnectorListener) listenerList.elementAt(i))
+						.connectorClosed(IOStreamConnector.this);
+			}
 
-    }
-  }
+			thread = null;
 
-  public interface IOStreamConnectorListener {
-    public void connectorClosed(IOStreamConnector connector);
-    
-    public void connectorTimeout(IOStreamConnector connector);
+		}
+	}
 
-    public void dataTransfered(byte[] data, int count);
-  }
+	public interface IOStreamConnectorListener {
+		public void connectorClosed(IOStreamConnector connector);
+
+		public void connectorTimeout(IOStreamConnector connector);
+
+		public void dataTransfered(byte[] data, int count);
+	}
 
 }

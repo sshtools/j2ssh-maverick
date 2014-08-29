@@ -31,122 +31,121 @@ import com.sshtools.ssh.SshAuthentication;
 import com.sshtools.ssh.SshClient;
 import com.sshtools.ssh.SshConnector;
 import com.sshtools.ssh.SshSession;
+
 /**
  * This example demonstrates password authentication.
- *
+ * 
  * @author Lee David Painter
  */
 public class PasswordConnect {
 
 	public static void main(String[] args) {
 
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(
+				System.in));
 
 		try {
-            System.out.print("Hostname: ");
-            String hostname;
-            hostname = "javassh.com"; //reader.readLine();
+			System.out.print("Hostname: ");
+			String hostname;
+			hostname = "javassh.com"; // reader.readLine();
 
-            int idx = hostname.indexOf(':');
-            int port = 22;
-            if (idx > -1) {
-                port = Integer.parseInt(hostname.substring(idx + 1));
-                hostname = hostname.substring(0, idx);
+			int idx = hostname.indexOf(':');
+			int port = 22;
+			if (idx > -1) {
+				port = Integer.parseInt(hostname.substring(idx + 1));
+				hostname = hostname.substring(0, idx);
 
-            }
+			}
 
-            System.out.print("Username [Enter for " + System.getProperty("user.name") +
-                             "]: ");
-            String username;
-            username = "ubuntu"; //reader.readLine();
+			System.out.print("Username [Enter for "
+					+ System.getProperty("user.name") + "]: ");
+			String username;
+			username = "ubuntu"; // reader.readLine();
 
-            if (username == null || username.trim().equals(""))
-                username = System.getProperty("user.name");
+			if (username == null || username.trim().equals(""))
+				username = System.getProperty("user.name");
 
-            
-            
-            
-            /**
-             * Create an SshConnector instance
-             */
-            SshConnector con = SshConnector.createInstance();
+			/**
+			 * Create an SshConnector instance
+			 */
+			SshConnector con = SshConnector.createInstance();
 
-            // Verify server host keys using the users known_hosts file
-            con.getContext().setHostKeyVerification(new ConsoleKnownHostsKeyVerification());
-            
-            /**
-             * Connect to the host
-             */
-            
-            System.out.println("Connecting to " + hostname);
-            
-            SocketTransport transport = new SocketTransport(hostname, port);
-            
-            System.out.println("Creating SSH client");
-            
-            final SshClient ssh = con.connect(transport,
-                                              username);
+			// Verify server host keys using the users known_hosts file
+			con.getContext().setHostKeyVerification(
+					new ConsoleKnownHostsKeyVerification());
 
-            /**
-             * Authenticate the user using password authentication
-             */
-            PasswordAuthentication pwd = new PasswordAuthentication();
+			/**
+			 * Connect to the host
+			 */
 
-            do {
-                System.out.print("Password: ");
-                pwd.setPassword(reader.readLine());
-            } while (ssh.authenticate(pwd) != SshAuthentication.COMPLETE
-                     && ssh.isConnected());
+			System.out.println("Connecting to " + hostname);
 
-            /**
-             * Start a session and do basic IO
-             */
-            if (ssh.isAuthenticated()) {
+			SocketTransport transport = new SocketTransport(hostname, port);
 
-                // Some old SSH2 servers kill the connection after the first
-                // session has closed and there are no other sessions started;
-                // so to avoid this we create the first session and dont ever use it
-                final SshSession session = ssh.openSessionChannel();
+			System.out.println("Creating SSH client");
 
-                // Use the newly added PseudoTerminalModes class to
-                // turn off echo on the remote shell
-                PseudoTerminalModes pty = new PseudoTerminalModes(ssh);
-                pty.setTerminalMode(PseudoTerminalModes.ECHO, false);
+			final SshClient ssh = con.connect(transport, username);
 
-                session.requestPseudoTerminal("vt100", 80, 24, 0, 0, pty);
+			/**
+			 * Authenticate the user using password authentication
+			 */
+			PasswordAuthentication pwd = new PasswordAuthentication();
 
-                session.startShell();
+			do {
+				System.out.print("Password: ");
+				pwd.setPassword(reader.readLine());
+			} while (ssh.authenticate(pwd) != SshAuthentication.COMPLETE
+					&& ssh.isConnected());
 
-                Thread t = new Thread() {
-                    public void run() {
-                        try {
-                            int read;
-                            while ((read = session.getInputStream().read()) > -1) {
-                                System.out.write(read);
-                                System.out.flush();
-                            }
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-                };
+			/**
+			 * Start a session and do basic IO
+			 */
+			if (ssh.isAuthenticated()) {
 
-                t.start();
-                int read;
-//                        byte[] buf = new byte[4096];
-                while((read = System.in.read()) > -1) {
-                    session.getOutputStream().write(read);
+				// Some old SSH2 servers kill the connection after the first
+				// session has closed and there are no other sessions started;
+				// so to avoid this we create the first session and dont ever
+				// use it
+				final SshSession session = ssh.openSessionChannel();
 
-                }
+				// Use the newly added PseudoTerminalModes class to
+				// turn off echo on the remote shell
+				PseudoTerminalModes pty = new PseudoTerminalModes(ssh);
+				pty.setTerminalMode(PseudoTerminalModes.ECHO, false);
 
-                session.close();
-            }
+				session.requestPseudoTerminal("vt100", 80, 24, 0, 0, pty);
 
-            ssh.disconnect();
-        } catch(Throwable t) {
-            t.printStackTrace();
-        }
+				session.startShell();
+
+				Thread t = new Thread() {
+					public void run() {
+						try {
+							int read;
+							while ((read = session.getInputStream().read()) > -1) {
+								System.out.write(read);
+								System.out.flush();
+							}
+						} catch (IOException ex) {
+							ex.printStackTrace();
+						}
+					}
+				};
+
+				t.start();
+				int read;
+				// byte[] buf = new byte[4096];
+				while ((read = System.in.read()) > -1) {
+					session.getOutputStream().write(read);
+
+				}
+
+				session.close();
+			}
+
+			ssh.disconnect();
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 	}
 
 }
-

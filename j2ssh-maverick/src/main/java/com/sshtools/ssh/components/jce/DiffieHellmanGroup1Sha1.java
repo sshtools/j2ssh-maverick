@@ -112,13 +112,13 @@ public class DiffieHellmanGroup1Sha1 extends SshKeyExchangeClient implements
 		this.serverKexInit = serverKexInit;
 
 		try {
-			
+
 			dhKeyFactory = JCEProvider
 					.getProviderForAlgorithm(JCEAlgorithms.JCE_DH) == null ? KeyFactory
 					.getInstance(JCEAlgorithms.JCE_DH) : KeyFactory
 					.getInstance(JCEAlgorithms.JCE_DH, JCEProvider
 							.getProviderForAlgorithm(JCEAlgorithms.JCE_DH));
-					
+
 			dhKeyAgreement = JCEProvider
 					.getProviderForAlgorithm(JCEAlgorithms.JCE_DH) == null ? KeyAgreement
 					.getInstance(JCEAlgorithms.JCE_DH) : KeyAgreement
@@ -132,18 +132,18 @@ public class DiffieHellmanGroup1Sha1 extends SshKeyExchangeClient implements
 
 		KeyPair dhKeyPair = null;
 		int retry = 3;
-		
+
 		do {
-			if(retry==0) {
+			if (retry == 0) {
 				transport.disconnect(TransportProtocol.KEY_EXCHANGE_FAILED,
 						"Failed to generate key exchange value");
 				throw new SshException(
 						"Key exchange failed to generate e value",
 						SshException.INTERNAL_ERROR);
 			}
-			
+
 			retry--;
-			
+
 			try {
 
 				dhKeyPairGen = JCEProvider
@@ -151,12 +151,12 @@ public class DiffieHellmanGroup1Sha1 extends SshKeyExchangeClient implements
 						.getInstance(JCEAlgorithms.JCE_DH) : KeyPairGenerator
 						.getInstance(JCEAlgorithms.JCE_DH, JCEProvider
 								.getProviderForAlgorithm(JCEAlgorithms.JCE_DH));
-						
+
 				DHParameterSpec dhSkipParamSpec = new DHParameterSpec(p, g);
 				dhKeyPairGen.initialize(dhSkipParamSpec);
 
 				dhKeyPair = dhKeyPairGen.generateKeyPair();
-				
+
 				e = ((DHPublicKey) dhKeyPair.getPublic()).getY();
 
 			} catch (InvalidAlgorithmParameterException ex) {
@@ -169,14 +169,13 @@ public class DiffieHellmanGroup1Sha1 extends SshKeyExchangeClient implements
 			}
 		} while (e.compareTo(ONE) < 0 || e.compareTo(p.subtract(ONE)) > 0);
 
-		
 		ByteArrayWriter msg = new ByteArrayWriter();
 		try {
-			
+
 			dhKeyAgreement.init(dhKeyPair.getPrivate());
-			
+
 			// Send DH_INIT message
-			
+
 			msg.write(SSH_MSG_KEXDH_INIT);
 			msg.writeBigInteger(e);
 
@@ -186,8 +185,7 @@ public class DiffieHellmanGroup1Sha1 extends SshKeyExchangeClient implements
 					"Failed to write SSH_MSG_KEXDH_INIT to message buffer",
 					SshException.INTERNAL_ERROR);
 		} catch (InvalidKeyException e1) {
-			throw new SshException(
-					"JCE reported Diffie Hellman invalid key",
+			throw new SshException("JCE reported Diffie Hellman invalid key",
 					SshException.JCE_ERROR);
 		} finally {
 			try {
@@ -235,11 +233,11 @@ public class DiffieHellmanGroup1Sha1 extends SshKeyExchangeClient implements
 					"Failed to read SSH_MSG_KEXDH_REPLY from message buffer",
 					SshException.INTERNAL_ERROR, ex);
 		} finally {
-	    	  try {
-	  			bar.close();
-	  		} catch (IOException e) {
-	  		}
-	    }
+			try {
+				bar.close();
+			} catch (IOException e) {
+			}
+		}
 	}
 
 	/**

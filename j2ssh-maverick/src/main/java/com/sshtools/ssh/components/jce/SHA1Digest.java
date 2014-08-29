@@ -24,8 +24,9 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  * SHA-1 digest implementation.
+ * 
  * @author Lee David Painter
- *
+ * 
  */
 public class SHA1Digest extends AbstractDigest {
 

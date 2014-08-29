@@ -42,7 +42,7 @@ import com.sshtools.ssh.SshException;
  * 
  * @author Lee David Painter
  */
-@SuppressWarnings({"rawtypes","unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class DirectoryOperation {
 
 	Vector unchangedFiles = new Vector();
@@ -58,7 +58,6 @@ public class DirectoryOperation {
 	public DirectoryOperation() {
 	}
 
-	
 	void addNewFile(File f) {
 		newFiles.addElement(f);
 	}

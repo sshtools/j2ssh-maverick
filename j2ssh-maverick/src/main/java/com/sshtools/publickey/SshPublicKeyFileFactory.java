@@ -35,8 +35,9 @@ import com.sshtools.ssh.components.SshPublicKey;
 import com.sshtools.util.ByteArrayReader;
 
 /**
- * Public key format factory used to decode different formats of public keys. The
- * following types of public keys are currently supported:
+ * Public key format factory used to decode different formats of public keys.
+ * The following types of public keys are currently supported:
+ * 
  * <pre>
  * OpenSSH
  * <blockquote>
@@ -61,172 +62,193 @@ import com.sshtools.util.ByteArrayReader;
  * 9127925140284440450097198129
  * </blockquote>
  * </pre>
+ * 
  * @author Lee David Painter
  */
 public class SshPublicKeyFileFactory {
 
-  public static final int OPENSSH_FORMAT = 0;
-  public static final int SECSH_FORMAT = 1;
-  public static final int SSH1_FORMAT = 2;
-  /**
-   * Decode an SSH2 encoded public key as specified in the SSH2 transport
-   * protocol. This consists of a String identifier specifying the algorithm
-   * of the public key and the remaining data is formatted depending upon
-   * the public key type. The supported key types are as follows:
-   * <pre>
-   * ssh-rsa is encoded as
-   * String        "ssh-rsa"
-   * BigInteger    e
-   * BigInteger    n
-   *
-   * ssh-dsa is encoded as
-   * String        "ssh-dsa"
-   * BigInteger    p
-   * BigInteger    q
-   * BigItneger    g
-   * BigInteger    y
-   * </pre>
-   * @param encoded
-   * @return SshPublicKey
-   * @throws IOException
-   */
-  public static SshPublicKey decodeSSH2PublicKey(byte[] encoded) throws
-  IOException {
-	  	ByteArrayReader bar = new ByteArrayReader(encoded);
+	public static final int OPENSSH_FORMAT = 0;
+	public static final int SECSH_FORMAT = 1;
+	public static final int SSH1_FORMAT = 2;
+
+	/**
+	 * Decode an SSH2 encoded public key as specified in the SSH2 transport
+	 * protocol. This consists of a String identifier specifying the algorithm
+	 * of the public key and the remaining data is formatted depending upon the
+	 * public key type. The supported key types are as follows:
+	 * 
+	 * <pre>
+	 * ssh-rsa is encoded as
+	 * String        "ssh-rsa"
+	 * BigInteger    e
+	 * BigInteger    n
+	 * 
+	 * ssh-dsa is encoded as
+	 * String        "ssh-dsa"
+	 * BigInteger    p
+	 * BigInteger    q
+	 * BigItneger    g
+	 * BigInteger    y
+	 * </pre>
+	 * 
+	 * @param encoded
+	 * @return SshPublicKey
+	 * @throws IOException
+	 */
+	public static SshPublicKey decodeSSH2PublicKey(byte[] encoded)
+			throws IOException {
+		ByteArrayReader bar = new ByteArrayReader(encoded);
 		try {
-		    
-		    String algorithm = bar.readString();
-		
-		    try {
-		        SshPublicKey publickey = (SshPublicKey) ComponentManager.getInstance().supportedPublicKeys().getInstance(algorithm);
-		        publickey.init(encoded, 0, encoded.length);
-		        return publickey;
-		    } catch (SshException ex) {
-		        throw new SshIOException(ex);
-		    }
+
+			String algorithm = bar.readString();
+
+			try {
+				SshPublicKey publickey = (SshPublicKey) ComponentManager
+						.getInstance().supportedPublicKeys()
+						.getInstance(algorithm);
+				publickey.init(encoded, 0, encoded.length);
+				return publickey;
+			} catch (SshException ex) {
+				throw new SshIOException(ex);
+			}
 		} catch (OutOfMemoryError ex2) {
-		    throw new IOException("An error occurred parsing a public key file! Is the file corrupt?");
+			throw new IOException(
+					"An error occurred parsing a public key file! Is the file corrupt?");
 		} finally {
-  			try {
-  				bar.close();
-  			} catch (IOException e) {
-  			}
-      }
+			try {
+				bar.close();
+			} catch (IOException e) {
+			}
+		}
 	}
-  
-  
-  public static SshPublicKey decodeSSH2PublicKey(String algorithm, byte[] encoded) throws
-      IOException {
-        try {
-            SshPublicKey publickey = (SshPublicKey) ComponentManager.getInstance().supportedPublicKeys().getInstance(algorithm);
-            publickey.init(encoded, 0, encoded.length);
-            return publickey;
-        } catch (SshException ex) {
-            throw new SshIOException(ex);
-        }
-  }
-  
-  /**
-   * Parse a formatted public key and return a file representation.
-   * @param formattedkey
-   * @return SshPublicKeyFile
-   * @throws IOException
-   */
-  public static SshPublicKeyFile parse(byte[] formattedkey) throws IOException {
-    try {
-        try {
-            return new OpenSSHPublicKeyFile(formattedkey);
-        } catch (IOException ex) {
-            try {
-                return new SECSHPublicKeyFile(formattedkey);
-            } catch (IOException ex2) {
-            	throw new IOException("Unable to parse key, format could not be identified");
-            }
-        }
-    } catch (OutOfMemoryError ex1) {
-        throw new IOException("An error occurred parsing a public key file! Is the file corrupt?");
-    }
-  }
 
-  /**
-   * Parse a formatted key from an InputStream and return a file
-   * representation.
-   * @param in
-   * @return SshPublicKeyFile
-   * @throws IOException
-   */
-  public static SshPublicKeyFile parse(InputStream in) throws IOException {
+	public static SshPublicKey decodeSSH2PublicKey(String algorithm,
+			byte[] encoded) throws IOException {
+		try {
+			SshPublicKey publickey = (SshPublicKey) ComponentManager
+					.getInstance().supportedPublicKeys().getInstance(algorithm);
+			publickey.init(encoded, 0, encoded.length);
+			return publickey;
+		} catch (SshException ex) {
+			throw new SshIOException(ex);
+		}
+	}
 
-    try {
-      ByteArrayOutputStream out = new ByteArrayOutputStream();
-      int read;
-      while ( (read = in.read()) > -1) {
-        out.write(read);
-      }
-      return parse(out.toByteArray());
-    }
-    finally {
-      try {
-        in.close();
-      }
-      catch (IOException ex) {}
-    }
+	/**
+	 * Parse a formatted public key and return a file representation.
+	 * 
+	 * @param formattedkey
+	 * @return SshPublicKeyFile
+	 * @throws IOException
+	 */
+	public static SshPublicKeyFile parse(byte[] formattedkey)
+			throws IOException {
+		try {
+			try {
+				return new OpenSSHPublicKeyFile(formattedkey);
+			} catch (IOException ex) {
+				try {
+					return new SECSHPublicKeyFile(formattedkey);
+				} catch (IOException ex2) {
+					throw new IOException(
+							"Unable to parse key, format could not be identified");
+				}
+			}
+		} catch (OutOfMemoryError ex1) {
+			throw new IOException(
+					"An error occurred parsing a public key file! Is the file corrupt?");
+		}
+	}
 
-  }
+	/**
+	 * Parse a formatted key from an InputStream and return a file
+	 * representation.
+	 * 
+	 * @param in
+	 * @return SshPublicKeyFile
+	 * @throws IOException
+	 */
+	public static SshPublicKeyFile parse(InputStream in) throws IOException {
 
-  /**
-   * Create a file representation from an existing public key. To generate
-   * new keys see <a href="SshKeyPairGenerator.html>SshKeyPairGenerator</a>.
-   * @param key     the public key
-   * @param comment the comment to apply to the formatted key
-   * @param format  the format type
-   * @return SshPublicKeyFile
-   * @throws IOException
-   */
-  public static SshPublicKeyFile create(SshPublicKey key, String comment,
-                                        int format) throws IOException {
-    switch (format) {
-      case OPENSSH_FORMAT:
-        return new OpenSSHPublicKeyFile(key, comment);
-      case SECSH_FORMAT:
-        return new SECSHPublicKeyFile(key, comment);
-      default:
-        throw new IOException("Invalid format type specified!");
-    }
-  }
-  
-  /**
-   * Take a <a href="SshPublicKey.html">SshPublicKey</a> and write it to a file
-   * @param key
-   * @param comment
-   * @param format
-   * @param toFile
-   * @throws IOException
-   */
-  public static void createFile(SshPublicKey key, String comment, int format, File toFile) throws IOException {
-	  
-	  SshPublicKeyFile pub = create(key, comment, format);
-	  
-	  FileOutputStream out = new FileOutputStream(toFile);
-	  
-	  try {
-		  out.write(pub.getFormattedKey());
-		  out.flush();
-	  } finally {
-		  out.close();
-	  }
-  }
-  
-  /**
-   * Take a file in any of the supported public key formats and convert to the requested format. 
-   * @param keyFile
-   * @param toFormat
-   * @param toFile
-   * @throws IOException
-   */
-  public static void convertFile(File keyFile, int toFormat, File toFile) throws IOException {
-	  
-	  SshPublicKeyFile pub = parse(new FileInputStream(keyFile));
-	  createFile(pub.toPublicKey(), pub.getComment(), toFormat, toFile);
-  }
+		try {
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			int read;
+			while ((read = in.read()) > -1) {
+				out.write(read);
+			}
+			return parse(out.toByteArray());
+		} finally {
+			try {
+				in.close();
+			} catch (IOException ex) {
+			}
+		}
+
+	}
+
+	/**
+	 * Create a file representation from an existing public key. To generate new
+	 * keys see <a href="SshKeyPairGenerator.html>SshKeyPairGenerator</a>.
+	 * 
+	 * @param key
+	 *            the public key
+	 * @param comment
+	 *            the comment to apply to the formatted key
+	 * @param format
+	 *            the format type
+	 * @return SshPublicKeyFile
+	 * @throws IOException
+	 */
+	public static SshPublicKeyFile create(SshPublicKey key, String comment,
+			int format) throws IOException {
+		switch (format) {
+		case OPENSSH_FORMAT:
+			return new OpenSSHPublicKeyFile(key, comment);
+		case SECSH_FORMAT:
+			return new SECSHPublicKeyFile(key, comment);
+		default:
+			throw new IOException("Invalid format type specified!");
+		}
+	}
+
+	/**
+	 * Take a <a href="SshPublicKey.html">SshPublicKey</a> and write it to a
+	 * file
+	 * 
+	 * @param key
+	 * @param comment
+	 * @param format
+	 * @param toFile
+	 * @throws IOException
+	 */
+	public static void createFile(SshPublicKey key, String comment, int format,
+			File toFile) throws IOException {
+
+		SshPublicKeyFile pub = create(key, comment, format);
+
+		FileOutputStream out = new FileOutputStream(toFile);
+
+		try {
+			out.write(pub.getFormattedKey());
+			out.flush();
+		} finally {
+			out.close();
+		}
+	}
+
+	/**
+	 * Take a file in any of the supported public key formats and convert to the
+	 * requested format.
+	 * 
+	 * @param keyFile
+	 * @param toFormat
+	 * @param toFile
+	 * @throws IOException
+	 */
+	public static void convertFile(File keyFile, int toFormat, File toFile)
+			throws IOException {
+
+		SshPublicKeyFile pub = parse(new FileInputStream(keyFile));
+		createFile(pub.toPublicKey(), pub.getComment(), toFormat, toFile);
+	}
 }

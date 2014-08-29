@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import com.sshtools.events.EventLog;
+import com.sshtools.logging.Log;
 import com.sshtools.ssh.ChannelEventListener;
 import com.sshtools.ssh.ChannelOpenException;
 import com.sshtools.ssh.ForwardingRequestListener;
@@ -96,12 +96,12 @@ public class Ssh2Client implements SshClient {
 			try {
 				io.close();
 			} catch (IOException ex) {
-				// #ifdef DEBUG
-				EventLog.LogEvent(
-						this,
-						"RECIEVED IOException IN Ssh2Client.connect:"
-								+ ex.getMessage());
-				// #endif
+				if (Log.isDebugEnabled()) {
+					Log.debug(
+							this,
+							"RECIEVED IOException IN Ssh2Client.connect:"
+									+ ex.getMessage());
+				}
 			}
 			throw new SshException("You must supply a valid username!",
 					SshException.BAD_API_USAGE);
@@ -111,37 +111,39 @@ public class Ssh2Client implements SshClient {
 			try {
 				io.close();
 			} catch (IOException ex) {
-				// #ifdef DEBUG
-				EventLog.LogEvent(
-						this,
-						"RECIEVED IOException IN Ssh2Client.connect:"
-								+ ex.getMessage());
-				// #endif
+				if (Log.isDebugEnabled()) {
+					Log.debug(
+							this,
+							"RECIEVED IOException IN Ssh2Client.connect:"
+									+ ex.getMessage());
+				}
 
 			}
 			throw new SshException("Ssh2Context required!",
 					SshException.BAD_API_USAGE);
 		}
 
-		// #ifdef DEBUG
-		EventLog.LogEvent(this, "Connecting " + username + "@" + io.getHost()
-				+ ":" + io.getPort());
-		EventLog.LogDebugEvent(this, "Remote identification is "
-				+ remoteIdentification);
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(
+					this,
+					"Connecting " + username + "@" + io.getHost() + ":"
+							+ io.getPort());
+			Log.debug(this, "Remote identification is "
+					+ remoteIdentification);
+		}
 
 		transport = new TransportProtocol();
 
-		// #ifdef DEBUG
-		EventLog.LogDebugEvent(this, "Starting transport protocol");
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Starting transport protocol");
+		}
 
 		transport.startTransportProtocol(io, (Ssh2Context) context,
 				localIdentification, remoteIdentification, this);
 
-		// #ifdef DEBUG
-		EventLog.LogDebugEvent(this, "Starting authentication protocol");
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Starting authentication protocol");
+		}
 
 		authentication = new AuthenticationProtocol(transport);
 		authentication.setBannerDisplay(((Ssh2Context) context)
@@ -151,10 +153,10 @@ public class Ssh2Client implements SshClient {
 		connection.addChannelFactory(requestFactory);
 
 		getAuthenticationMethods(username);
-		
-		// #ifdef DEBUG
-		EventLog.LogEvent(this, "SSH connection established");
-		// #endif
+
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "SSH connection established");
+		}
 	}
 
 	/**
@@ -172,16 +174,17 @@ public class Ssh2Client implements SshClient {
 
 		if (authenticationMethods == null) {
 
-			// #ifdef DEBUG
-			EventLog.LogEvent(this, "Requesting authentication methods");
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(this, "Requesting authentication methods");
+			}
 
 			String methods = authentication.getAuthenticationMethods(username,
 					ConnectionProtocol.SERVICE_NAME);
 
-			// #ifdef DEBUG
-			EventLog.LogEvent(this, "Available authentications are " + methods);
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(this, "Available authentications are "
+						+ methods);
+			}
 			Vector<String> tmp = new Vector<String>();
 			int idx;
 			while (methods != null) {
@@ -301,9 +304,9 @@ public class Ssh2Client implements SshClient {
 			auth = checkForPasswordOverKBI(auth);
 		}
 
-		// #ifdef DEBUG
-		EventLog.LogEvent(this, "Authenticating with " + auth.getMethod());
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Authenticating with " + auth.getMethod());
+		}
 
 		int result;
 
@@ -347,30 +350,31 @@ public class Ssh2Client implements SshClient {
 			connection.start();
 		}
 
-		// #ifdef DEBUG
-		switch (result) {
-		case SshAuthentication.COMPLETE:
-			EventLog.LogEvent(this, "Authentication complete");
-			break;
-		case SshAuthentication.FAILED:
-			EventLog.LogEvent(this, "Authentication failed");
-			break;
-		case SshAuthentication.FURTHER_AUTHENTICATION_REQUIRED:
-			EventLog.LogEvent(this,
-					"Authentication successful but further authentication required");
-			break;
-		case SshAuthentication.CANCELLED:
-			EventLog.LogEvent(this, "Authentication cancelled");
-			break;
-		case SshAuthentication.PUBLIC_KEY_ACCEPTABLE:
-			EventLog.LogEvent(this, "Server accepts the public key provided");
-			break;
-		default:
-			EventLog.LogErrorEvent(this, "Unknown authentication result "
-					+ result);
-			break;
+		if (Log.isDebugEnabled()) {
+			switch (result) {
+			case SshAuthentication.COMPLETE:
+				Log.debug(this, "Authentication complete");
+				break;
+			case SshAuthentication.FAILED:
+				Log.debug(this, "Authentication failed");
+				break;
+			case SshAuthentication.FURTHER_AUTHENTICATION_REQUIRED:
+				Log.debug(this,
+						"Authentication successful but further authentication required");
+				break;
+			case SshAuthentication.CANCELLED:
+				Log.debug(this, "Authentication cancelled");
+				break;
+			case SshAuthentication.PUBLIC_KEY_ACCEPTABLE:
+				Log.debug(this,
+						"Server accepts the public key provided");
+				break;
+			default:
+				Log.debug(this, "Unknown authentication result "
+						+ result);
+				break;
+			}
 		}
-		// #endif
 
 		return result;
 	}
@@ -383,37 +387,37 @@ public class Ssh2Client implements SshClient {
 
 		try {
 
-			// #ifdef DEBUG
-			EventLog.LogEvent(this, "Disconnecting");
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(this, "Disconnecting");
+			}
 			connection.signalClosingState();
 			connection.stop();
 			transport.disconnect(TransportProtocol.BY_APPLICATION,
 					"The user disconnected the application");
 		} catch (Throwable t) {
-		} 
+		}
 
-		// #ifdef DEBUG
-		EventLog.LogEvent(this, "Disconnected");
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Disconnected");
+		}
 	}
 
 	public void exit() {
 
 		try {
 
-			// #ifdef DEBUG
-			EventLog.LogEvent(this, "Disconnecting");
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(this, "Disconnecting");
+			}
 			connection.signalClosingState();
 			transport.disconnect(TransportProtocol.BY_APPLICATION,
 					"The user disconnected the application");
 		} catch (Throwable t) {
 		}
 
-		// #ifdef DEBUG
-		EventLog.LogEvent(this, "Disconnected");
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Disconnected");
+		}
 	}
 
 	public boolean isConnected() {
@@ -430,9 +434,9 @@ public class Ssh2Client implements SshClient {
 	 * @throws SshException
 	 */
 	public void forceKeyExchange() throws SshException {
-		// #ifdef DEBUG
-		EventLog.LogEvent(this, "Forcing key exchange");
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Forcing key exchange");
+		}
 		transport.sendKeyExchangeInit(false);
 	}
 
@@ -480,10 +484,10 @@ public class Ssh2Client implements SshClient {
 			throws ChannelOpenException, SshException {
 		verifyConnection(true);
 
-		// #ifdef DEBUG
-		EventLog.LogEvent(this, "Opening session channel windowspace="
-				+ windowspace + " packetsize=" + packetsize);
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Opening session channel windowspace="
+					+ windowspace + " packetsize=" + packetsize);
+		}
 
 		Ssh2Session channel = new Ssh2Session(windowspace, packetsize, this);
 		if (listener != null) {
@@ -492,10 +496,10 @@ public class Ssh2Client implements SshClient {
 
 		connection.openChannel(channel, null, timeout);
 
-		// #ifdef DEBUG
-		EventLog.LogEvent(this,
-				"Channel has been opened channelid=" + channel.getChannelId());
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Channel has been opened channelid="
+					+ channel.getChannelId());
+		}
 
 		/**
 		 * Do our sessions require x forwarding? If so then request and make
@@ -541,11 +545,11 @@ public class Ssh2Client implements SshClient {
 			String username, SshConnector con) throws SshException,
 			ChannelOpenException {
 
-		// #ifdef DEBUG
-		EventLog.LogEvent(this,
-				"Opening a remote SSH client from " + io.getHost() + " to "
-						+ username + "@" + hostname + ":" + port);
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this,
+					"Opening a remote SSH client from " + io.getHost() + " to "
+							+ username + "@" + hostname + ":" + port);
+		}
 		SshTunnel tunnel = openForwardingChannel(hostname, port, "127.0.0.1",
 				22, "127.0.0.1", 22, null, null);
 
@@ -563,24 +567,22 @@ public class Ssh2Client implements SshClient {
 			int originatingPort, SshTransport transport,
 			ChannelEventListener listener) throws SshException,
 			ChannelOpenException {
-		
+
 		ByteArrayWriter request = new ByteArrayWriter();
-		
+
 		try {
 
-			// #ifdef DEBUG
-			EventLog.LogEvent(this, "Opening forwarding channel from "
-					+ listeningAddress + ":" + listeningPort + " to "
-					+ hostname + ":" + port);
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(this, "Opening forwarding channel from "
+						+ listeningAddress + ":" + listeningPort + " to "
+						+ hostname + ":" + port);
+			}
 
 			Ssh2ForwardingChannel tunnel = new Ssh2ForwardingChannel(
 					Ssh2ForwardingChannel.LOCAL_FORWARDING_CHANNEL, 32768,
 					2097152, hostname, port, listeningAddress, listeningPort,
 					originatingHost, originatingPort, transport);
 
-			
-			
 			request.writeString(hostname);
 			request.writeInt(port);
 			request.writeString(originatingHost);
@@ -603,9 +605,9 @@ public class Ssh2Client implements SshClient {
 	public boolean requestRemoteForwarding(String bindAddress, int bindPort,
 			String hostToConnect, int portToConnect,
 			ForwardingRequestListener listener) throws SshException {
-		
+
 		ByteArrayWriter baw = new ByteArrayWriter();
-		
+
 		try {
 			if (listener == null) {
 				throw new SshException(
@@ -613,13 +615,12 @@ public class Ssh2Client implements SshClient {
 						SshException.BAD_API_USAGE);
 			}
 
-			// #ifdef DEBUG
-			EventLog.LogEvent(this, "Requesting remote forwarding from "
-					+ bindAddress + ":" + bindPort + " to " + hostToConnect
-					+ ":" + portToConnect);
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(this, "Requesting remote forwarding from "
+						+ bindAddress + ":" + bindPort + " to " + hostToConnect
+						+ ":" + portToConnect);
+			}
 
-			
 			baw.writeString(bindAddress);
 			baw.writeInt(bindPort);
 			GlobalRequest request = new GlobalRequest("tcpip-forward",
@@ -640,27 +641,26 @@ public class Ssh2Client implements SshClient {
 		} catch (IOException ex) {
 			throw new SshException(ex, SshException.INTERNAL_ERROR);
 		} finally {
-  			try {
-  				baw.close();
-  			} catch (IOException e) {
-  			}
-    }
+			try {
+				baw.close();
+			} catch (IOException e) {
+			}
+		}
 
 	}
 
 	public boolean cancelRemoteForwarding(String bindAddress, int bindPort)
 			throws SshException {
-		
+
 		ByteArrayWriter baw = new ByteArrayWriter();
-		
+
 		try {
 
-			// #ifdef DEBUG
-			EventLog.LogEvent(this, "Cancelling remote forwarding from "
-					+ bindAddress + ":" + bindPort);
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(this, "Cancelling remote forwarding from "
+						+ bindAddress + ":" + bindPort);
+			}
 
-			
 			baw.writeString(bindAddress);
 			baw.writeInt(bindPort);
 			GlobalRequest request = new GlobalRequest("cancel-tcpip-forward",
@@ -680,10 +680,10 @@ public class Ssh2Client implements SshClient {
 		} catch (IOException ex) {
 			throw new SshException(ex, SshException.INTERNAL_ERROR);
 		} finally {
-  			try {
-  				baw.close();
-  			} catch (IOException e) {
-  			}
+			try {
+				baw.close();
+			} catch (IOException e) {
+			}
 		}
 	}
 
@@ -749,13 +749,13 @@ public class Ssh2Client implements SshClient {
 	public void addRequestHandler(GlobalRequestHandler handler)
 			throws SshException {
 
-		// #ifdef DEBUG
-		String requests = "";
-		for (int i = 0; i < handler.supportedRequests().length; i++)
-			requests += handler.supportedRequests()[i] + " ";
-		EventLog.LogEvent(this, "Installing global request handler for "
-				+ requests.trim());
-		// #endif
+		if (Log.isDebugEnabled()) {
+			String requests = "";
+			for (int i = 0; i < handler.supportedRequests().length; i++)
+				requests += handler.supportedRequests()[i] + " ";
+			Log.debug(this, "Installing global request handler for "
+					+ requests.trim());
+		}
 
 		connection.addRequestHandler(handler);
 	}
@@ -811,9 +811,9 @@ public class Ssh2Client implements SshClient {
 
 		try {
 
-			// #ifdef DEBUG
-			EventLog.LogEvent(this, "Duplicating SSH client");
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(this, "Duplicating SSH client");
+			}
 
 			SshClient duplicate = connector.connect(io.duplicate(), username,
 					buffered, transport.transportContext);
@@ -860,7 +860,7 @@ public class Ssh2Client implements SshClient {
 					.equals(Ssh2ForwardingChannel.REMOTE_FORWARDING_CHANNEL)) {
 				ByteArrayReader bar = new ByteArrayReader(requestdata);
 				try {
-					
+
 					String address = bar.readString();
 					int port = (int) bar.readInt();
 					String originatorIP = bar.readString();
@@ -877,12 +877,13 @@ public class Ssh2Client implements SshClient {
 						int portToConnect = Integer.parseInt(destination
 								.substring(destination.indexOf(':') + 1));
 
-						// #ifdef DEBUG
-						EventLog.LogEvent(this,
-								"Creating remote forwarding channel from "
-										+ address + ":" + port + " to "
-										+ hostToConnect + ":" + portToConnect);
-						// #endif
+						if (Log.isDebugEnabled()) {
+							Log.debug(this,
+									"Creating remote forwarding channel from "
+											+ address + ":" + port + " to "
+											+ hostToConnect + ":"
+											+ portToConnect);
+						}
 
 						// create connection from here to end point of tunnel,
 						// then pass to new Ssh2ForwardingChannel
@@ -921,7 +922,7 @@ public class Ssh2Client implements SshClient {
 							"X Forwarding had not previously been requested",
 							ChannelOpenException.ADMINISTRATIVIVELY_PROHIBITED);
 				ByteArrayReader bar = new ByteArrayReader(requestdata);
-				
+
 				try {
 
 					String originatorIP = bar.readString();
@@ -954,11 +955,11 @@ public class Ssh2Client implements SshClient {
 						targetPort += 6000;
 					}
 
-					// #ifdef DEBUG
-					EventLog.LogEvent(this,
-							"Creating X11 forwarding channel for display "
-									+ targetAddr + ":" + screen);
-					// #endif
+					if (Log.isDebugEnabled()) {
+						Log.debug(this,
+								"Creating X11 forwarding channel for display "
+										+ targetAddr + ":" + screen);
+					}
 
 					ForwardingRequestListener listener = connection
 							.getContext().getX11RequestListener();

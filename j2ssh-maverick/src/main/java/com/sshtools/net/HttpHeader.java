@@ -30,145 +30,144 @@ import java.util.Hashtable;
  * Utility class to process HTTP headers.
  * 
  * @author Lee David Painter
- *
+ * 
  */
 public abstract class HttpHeader {
 
-    protected final static String white_SPACE = " \t\r";
-    Hashtable<String,String> fields;
+	protected final static String white_SPACE = " \t\r";
+	Hashtable<String, String> fields;
 
+	protected String begin;
 
-    protected String begin;
+	protected HttpHeader() {
+		fields = new Hashtable<String, String>();
+	}
 
-    protected HttpHeader() {
-        fields = new Hashtable<String,String>();
-    }
+	protected String readLine(InputStream in) throws IOException {
+		StringBuffer lineBuf = new StringBuffer();
+		int c;
 
-    protected String readLine(InputStream in) throws IOException {
-        StringBuffer lineBuf = new StringBuffer();
-        int c;
+		while (true) {
+			c = in.read();
 
-        while (true) {
-            c = in.read();
+			if (c == -1) {
+				throw new IOException(
+						"Failed to read expected HTTP header line");
+			}
 
-            if (c == -1) {
-                throw new IOException(
-                    "Failed to read expected HTTP header line");
-            }
+			if (c == '\n') {
+				continue;
+			}
 
-            if (c == '\n') {
-                continue;
-            }
+			if (c != '\r') {
+				lineBuf.append((char) c);
+			} else {
+				break;
+			}
+		}
 
-            if (c != '\r') {
-                lineBuf.append((char) c);
-            } else {
-                break;
-            }
-        }
+		return new String(lineBuf);
+	}
 
-        return new String(lineBuf);
-    }
+	public String getStartLine() {
+		return begin;
+	}
 
+	public Hashtable<String, String> getHeaderFields() {
+		return fields;
+	}
 
-    public String getStartLine() {
-        return begin;
-    }
+	public Enumeration<String> getHeaderFieldNames() {
+		return fields.keys();
+	}
 
-    public Hashtable<String,String> getHeaderFields() {
-        return fields;
-    }
+	public String getHeaderField(String headerName) {
+		for (Enumeration<String> e = fields.keys(); e.hasMoreElements();) {
+			String f = (String) e.nextElement();
+			if (f.equalsIgnoreCase(headerName)) {
+				return (String) fields.get(f);
+			}
+		}
+		return null;
+	}
 
-    public Enumeration<String> getHeaderFieldNames() {
-        return fields.keys();
-    }
+	public void setHeaderField(String headerName, String value) {
+		fields.put(headerName, value);
+	}
 
-    public String getHeaderField(String headerName) {
-    	for(Enumeration<String> e = fields.keys();e.hasMoreElements();) {
-    		String f = (String)e.nextElement();
-    		if(f.equalsIgnoreCase(headerName)) {
-    			return (String) fields.get(f);
-    		}
-    	}
-        return null;
-    }
+	public String toString() {
+		String str = begin + "\r\n";
+		Enumeration<String> it = getHeaderFieldNames();
 
-    public void setHeaderField(String headerName, String value) {
-        fields.put(headerName, value);
-    }
+		while (it.hasMoreElements()) {
+			String fieldName = (String) it.nextElement();
+			str += (fieldName + ": " + getHeaderField(fieldName) + "\r\n");
+		}
 
-    public String toString() {
-        String str = begin + "\r\n";
-        Enumeration<String> it = getHeaderFieldNames();
+		str += "\r\n";
 
-        while (it.hasMoreElements()) {
-            String fieldName = (String) it.nextElement();
-            str += (fieldName + ": " + getHeaderField(fieldName) + "\r\n");
-        }
+		return str;
+	}
 
-        str += "\r\n";
+	protected void processHeaderFields(InputStream in) throws IOException {
+		fields = new Hashtable<String, String>();
 
-        return str;
-    }
+		StringBuffer lineBuf = new StringBuffer();
+		String lastHeaderName = null;
+		int c;
 
-    protected void processHeaderFields(InputStream in)
-        throws IOException {
-        fields = new Hashtable<String,String>();
+		while (true) {
+			c = in.read();
 
-        StringBuffer lineBuf = new StringBuffer();
-        String lastHeaderName = null;
-        int c;
+			if (c == -1) {
+				throw new IOException(
+						"EOF returned from server but HTTP response is not complete!");
+			}
 
-        while (true) {
-            c = in.read();
+			if (c == '\n') {
+				continue;
+			}
 
-            if (c == -1) {
-                throw new IOException("EOF returned from server but HTTP response is not complete!");
-            }
+			if (c != '\r') {
+				lineBuf.append((char) c);
+			} else {
+				if (lineBuf.length() != 0) {
+					String line = lineBuf.toString();
+					lastHeaderName = processNextLine(line, lastHeaderName);
+					lineBuf.setLength(0);
+				} else {
+					break;
+				}
+			}
+		}
 
-            if (c == '\n') {
-                continue;
-            }
+		c = in.read();
+	}
 
-            if (c != '\r') {
-                lineBuf.append((char) c);
-            } else {
-                if (lineBuf.length() != 0) {
-                    String line = lineBuf.toString();
-                    lastHeaderName = processNextLine(line, lastHeaderName);
-                    lineBuf.setLength(0);
-                } else {
-                    break;
-                }
-            }
-        }
+	private String processNextLine(String line, String lastHeaderName)
+			throws IOException {
+		String name;
+		String value;
+		char c = line.charAt(0);
 
-        c = in.read();
-    }
+		if ((c == ' ') || (c == '\t')) {
+			name = lastHeaderName;
+			value = getHeaderField(lastHeaderName) + " " + line.trim();
+		} else {
+			int n = line.indexOf(':');
 
-    private String processNextLine(String line, String lastHeaderName)
-        throws IOException {
-        String name;
-        String value;
-        char c = line.charAt(0);
+			if (n == -1) {
+				throw new IOException(
+						"HTTP Header encoutered a corrupt field: '" + line
+								+ "'");
+			}
 
-        if ((c == ' ') || (c == '\t')) {
-            name = lastHeaderName;
-            value = getHeaderField(lastHeaderName) + " " + line.trim();
-        } else {
-            int n = line.indexOf(':');
+			name = line.substring(0, n).toLowerCase();
+			value = line.substring(n + 1).trim();
+		}
 
-            if (n == -1) {
-                throw new IOException(
-                    "HTTP Header encoutered a corrupt field: '" + line + "'");
-            }
+		setHeaderField(name, value);
 
-            name = line.substring(0, n).toLowerCase();
-            value = line.substring(n + 1).trim();
-        }
-
-        setHeaderField(name, value);
-
-        return name;
-    }
+		return name;
+	}
 }

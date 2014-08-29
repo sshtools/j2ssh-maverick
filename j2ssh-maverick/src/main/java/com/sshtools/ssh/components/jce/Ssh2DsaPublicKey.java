@@ -99,7 +99,7 @@ public class Ssh2DsaPublicKey implements SshDsaPublicKey {
 	public byte[] getEncoded() throws SshException {
 		ByteArrayWriter baw = new ByteArrayWriter();
 		try {
-			
+
 			baw.writeString(getAlgorithm());
 			baw.writeBigInteger(pubkey.getParams().getP());
 			baw.writeBigInteger(pubkey.getParams().getQ());
@@ -111,10 +111,10 @@ public class Ssh2DsaPublicKey implements SshDsaPublicKey {
 			throw new SshException("Failed to encoded DSA key",
 					SshException.INTERNAL_ERROR, ioe);
 		} finally {
-  			try {
-  				baw.close();
-  			} catch (IOException e) {
-  			}
+			try {
+				baw.close();
+			} catch (IOException e) {
+			}
 		}
 	}
 
@@ -141,9 +141,9 @@ public class Ssh2DsaPublicKey implements SshDsaPublicKey {
 	 * @todo Implement this com.maverick.ssh.SshPublicKey method
 	 */
 	public void init(byte[] blob, int start, int len) throws SshException {
-		
+
 		ByteArrayReader bar = new ByteArrayReader(blob, start, len);
-		
+
 		try {
 			DSAPublicKeySpec dsaKey;
 
@@ -194,77 +194,85 @@ public class Ssh2DsaPublicKey implements SshDsaPublicKey {
 	 * @throws SshException
 	 * @todo Implement this com.maverick.ssh.SshPublicKey method
 	 */
-	public boolean verifySignature(byte[] signature, byte[] data) throws
-            SshException {
-        
+	public boolean verifySignature(byte[] signature, byte[] data)
+			throws SshException {
+
 		ByteArrayReader bar = new ByteArrayReader(signature);
-		
+
 		try {
-        	
-        	if(signature.length != 40  				// 160 bits
-        			&& signature.length != 56   	// 224 bits
-        			&& signature.length != 64) {   	// 256 bits
-        		
-                byte[] sig = bar.readBinaryString();
 
-                //log.debug("Signature blob is " + new String(sig));
-                String header = new String(sig);
+			if (signature.length != 40 // 160 bits
+					&& signature.length != 56 // 224 bits
+					&& signature.length != 64) { // 256 bits
 
-                if (!header.equals("ssh-dss")) {
-                    throw new SshException("The encoded signature is not DSA",
-                                           SshException.INTERNAL_ERROR);
-                }
+				byte[] sig = bar.readBinaryString();
 
-                signature = bar.readBinaryString();
-        	}
-        	
-        	int numSize = signature.length / 2;
+				// log.debug("Signature blob is " + new String(sig));
+				String header = new String(sig);
 
-             // Using a SimpleASNWriter
-             ByteArrayOutputStream r = new ByteArrayOutputStream();
-             ByteArrayOutputStream s = new ByteArrayOutputStream();
-             SimpleASNWriter asn = new SimpleASNWriter();
-             asn.writeByte(0x02);
+				if (!header.equals("ssh-dss")) {
+					throw new SshException("The encoded signature is not DSA",
+							SshException.INTERNAL_ERROR);
+				}
 
-             if (((signature[0] & 0x80) == 0x80) && (signature[0] != 0x00)) {
-                 r.write(0);
-                 r.write(signature, 0, numSize);
-             } else {
-                 r.write(signature, 0, numSize);
-             }
+				signature = bar.readBinaryString();
+			}
 
-             asn.writeData(r.toByteArray());
-             asn.writeByte(0x02);
+			int numSize = signature.length / 2;
 
-             if (((signature[numSize] & 0x80) == 0x80) && (signature[numSize] != 0x00)) {
-                 s.write(0);
-                 s.write(signature, numSize, numSize);
-             } else {
-                 s.write(signature, numSize, numSize);
-             }
+			// Using a SimpleASNWriter
+			ByteArrayOutputStream r = new ByteArrayOutputStream();
+			ByteArrayOutputStream s = new ByteArrayOutputStream();
+			SimpleASNWriter asn = new SimpleASNWriter();
+			asn.writeByte(0x02);
 
-             asn.writeData(s.toByteArray());
+			if (((signature[0] & 0x80) == 0x80) && (signature[0] != 0x00)) {
+				r.write(0);
+				r.write(signature, 0, numSize);
+			} else {
+				r.write(signature, 0, numSize);
+			}
 
-             SimpleASNWriter asnEncoded = new SimpleASNWriter();
-             asnEncoded.writeByte(0x30);
-             asnEncoded.writeData(asn.toByteArray());
+			asn.writeData(r.toByteArray());
+			asn.writeByte(0x02);
 
-             byte[] encoded = asnEncoded.toByteArray();
+			if (((signature[numSize] & 0x80) == 0x80)
+					&& (signature[numSize] != 0x00)) {
+				s.write(0);
+				s.write(signature, numSize, numSize);
+			} else {
+				s.write(signature, numSize, numSize);
+			}
 
-             Signature sig = JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_SHA1WithDSA) == null ? Signature.getInstance(JCEAlgorithms.JCE_SHA1WithDSA) : Signature.getInstance(JCEAlgorithms.JCE_SHA1WithDSA, JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_SHA1WithDSA));
-             sig.initVerify(pubkey);
-             sig.update(data);
+			asn.writeData(s.toByteArray());
 
-             return sig.verify(encoded);
-         } catch (Exception ex) {
-            throw new SshException(SshException.JCE_ERROR, ex);
-        } finally {
+			SimpleASNWriter asnEncoded = new SimpleASNWriter();
+			asnEncoded.writeByte(0x30);
+			asnEncoded.writeData(asn.toByteArray());
+
+			byte[] encoded = asnEncoded.toByteArray();
+
+			Signature sig = JCEProvider
+					.getProviderForAlgorithm(JCEAlgorithms.JCE_SHA1WithDSA) == null ? Signature
+					.getInstance(JCEAlgorithms.JCE_SHA1WithDSA)
+					: Signature
+							.getInstance(
+									JCEAlgorithms.JCE_SHA1WithDSA,
+									JCEProvider
+											.getProviderForAlgorithm(JCEAlgorithms.JCE_SHA1WithDSA));
+			sig.initVerify(pubkey);
+			sig.update(data);
+
+			return sig.verify(encoded);
+		} catch (Exception ex) {
+			throw new SshException(SshException.JCE_ERROR, ex);
+		} finally {
 			try {
 				bar.close();
 			} catch (IOException e) {
 			}
 		}
-    }
+	}
 
 	public boolean equals(Object obj) {
 		if (obj instanceof SshDsaPublicKey) {

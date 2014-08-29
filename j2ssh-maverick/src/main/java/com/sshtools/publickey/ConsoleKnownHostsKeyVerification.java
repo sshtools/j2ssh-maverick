@@ -31,144 +31,157 @@ import com.sshtools.ssh.components.SshPublicKey;
 
 /**
  * <p>
- * Implements the <a href="AbstractKnownHostsKeyVerification.html">AbstractKnownHostsKeyVerification</a>
- * to provide host key verification through the console.
+ * Implements the <a href="AbstractKnownHostsKeyVerification.html">
+ * AbstractKnownHostsKeyVerification</a> to provide host key verification
+ * through the console.
  * </p>
- *
+ * 
  * @author Lee David Painter
  */
-public class ConsoleKnownHostsKeyVerification
-    extends AbstractKnownHostsKeyVerification {
-  /**
-   * <p>
-   * Constructs the verification instance with the default known_hosts file
-   * from $HOME/.ssh/known_hosts.
-   * </p>
-   *
-   * @throws InvalidHostFileException if the known_hosts file is invalid.
-   *
-   * @since 0.2.0
-   */
-  public ConsoleKnownHostsKeyVerification() throws SshException {
-    super();
-  }
+public class ConsoleKnownHostsKeyVerification extends
+		AbstractKnownHostsKeyVerification {
+	/**
+	 * <p>
+	 * Constructs the verification instance with the default known_hosts file
+	 * from $HOME/.ssh/known_hosts.
+	 * </p>
+	 * 
+	 * @throws InvalidHostFileException
+	 *             if the known_hosts file is invalid.
+	 * 
+	 * @since 0.2.0
+	 */
+	public ConsoleKnownHostsKeyVerification() throws SshException {
+		super();
+	}
 
-  /**
-   * <p>
-   * Constructs the verification instance with the specified known_hosts
-   * file.
-   * </p>
-   *
-   * @param knownhosts the path to the known_hosts file
-   *
-   * @throws InvalidHostFileException if the known_hosts file is invalid.
-   *
-   * @since 0.2.0
-   */
-  public ConsoleKnownHostsKeyVerification(String knownhosts) throws SshException {
-    super(knownhosts);
-  }
+	/**
+	 * <p>
+	 * Constructs the verification instance with the specified known_hosts file.
+	 * </p>
+	 * 
+	 * @param knownhosts
+	 *            the path to the known_hosts file
+	 * 
+	 * @throws InvalidHostFileException
+	 *             if the known_hosts file is invalid.
+	 * 
+	 * @since 0.2.0
+	 */
+	public ConsoleKnownHostsKeyVerification(String knownhosts)
+			throws SshException {
+		super(knownhosts);
+	}
 
-  /**
-   * <p>
-   * Prompts the user through the console to verify the host key.
-   * </p>
-   *
-   * @param host the name of the host
-   * @param pk the current public key of the host
-   * @param actual the actual public key supplied by the host
-   *
-   * @since 0.2.0
-   */
-  public void onHostKeyMismatch(String host, SshPublicKey pk,
-                                SshPublicKey actual) {
-    try {
-      System.out.println("The host key supplied by " + host
-                         + "(" + pk.getAlgorithm() + ")"
-                         + " is: "
-                         + actual.getFingerprint());
-      System.out.println("The current allowed key for " + host + " is: "
-                         + pk.getFingerprint());
-      getResponse(host, actual);
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
+	/**
+	 * <p>
+	 * Prompts the user through the console to verify the host key.
+	 * </p>
+	 * 
+	 * @param host
+	 *            the name of the host
+	 * @param pk
+	 *            the current public key of the host
+	 * @param actual
+	 *            the actual public key supplied by the host
+	 * 
+	 * @since 0.2.0
+	 */
+	public void onHostKeyMismatch(String host, SshPublicKey pk,
+			SshPublicKey actual) {
+		try {
+			System.out.println("The host key supplied by " + host + "("
+					+ pk.getAlgorithm() + ")" + " is: "
+					+ actual.getFingerprint());
+			System.out.println("The current allowed key for " + host + " is: "
+					+ pk.getFingerprint());
+			getResponse(host, actual);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-  /**
-   * <p>
-   * Prompts the user through the console to verify the host key.
-   * </p>
-   *
-   * @param host the name of the host
-   * @param pk the public key supplied by the host
-   *
-   * @since 0.2.0
-   */
-  public void onUnknownHost(String host, SshPublicKey pk) {
-    try {
-      System.out.println("The host " + host
-                         + " is currently unknown to the system");
-      System.out.println("The MD5 host key " + "(" + pk.getAlgorithm() +
-                         ") fingerprint is: "
-                         + pk.getFingerprint());
-      System.out.println("The SHA1 host key " + "(" + pk.getAlgorithm() +
-              ") fingerprint is: "
-              + SshKeyFingerprint.getFingerprint(pk.getEncoded(), SshKeyFingerprint.SHA1_FINGERPRINT));
-      try {
-      System.out.println("The SHA256 host key " + "(" + pk.getAlgorithm() +
-              ") fingerprint is: "
-              + SshKeyFingerprint.getFingerprint(pk.getEncoded(), SshKeyFingerprint.SHA256_FINGERPRINT));
-      } catch(Exception ex) { }
-      
-      getResponse(host, pk);
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
+	/**
+	 * <p>
+	 * Prompts the user through the console to verify the host key.
+	 * </p>
+	 * 
+	 * @param host
+	 *            the name of the host
+	 * @param pk
+	 *            the public key supplied by the host
+	 * 
+	 * @since 0.2.0
+	 */
+	public void onUnknownHost(String host, SshPublicKey pk) {
+		try {
+			System.out.println("The host " + host
+					+ " is currently unknown to the system");
+			System.out.println("The MD5 host key " + "(" + pk.getAlgorithm()
+					+ ") fingerprint is: " + pk.getFingerprint());
+			System.out.println("The SHA1 host key "
+					+ "("
+					+ pk.getAlgorithm()
+					+ ") fingerprint is: "
+					+ SshKeyFingerprint.getFingerprint(pk.getEncoded(),
+							SshKeyFingerprint.SHA1_FINGERPRINT));
+			try {
+				System.out.println("The SHA256 host key "
+						+ "("
+						+ pk.getAlgorithm()
+						+ ") fingerprint is: "
+						+ SshKeyFingerprint.getFingerprint(pk.getEncoded(),
+								SshKeyFingerprint.SHA256_FINGERPRINT));
+			} catch (Exception ex) {
+			}
 
-  protected void onInvalidHostEntry(String entry) throws SshException {
-	System.out.println("Invalid host entry in " + getKnownHostsFile().getAbsolutePath());
-	System.out.println(entry);
-  }
-	
-  private void getResponse(String host, SshPublicKey pk) throws SshException {
-    String response = "";
-    BufferedReader reader = new BufferedReader(new InputStreamReader(
-        System.in));
+			getResponse(host, pk);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-    while (! (response.equalsIgnoreCase("YES")
-              || response.equalsIgnoreCase("NO")
-              || (response.equalsIgnoreCase("ALWAYS")
-                  && isHostFileWriteable()))) {
-      String options = (isHostFileWriteable() ? "Yes|No|Always" : "Yes|No");
+	protected void onInvalidHostEntry(String entry) throws SshException {
+		System.out.println("Invalid host entry in "
+				+ getKnownHostsFile().getAbsolutePath());
+		System.out.println(entry);
+	}
 
-      if (!isHostFileWriteable()) {
-        System.out.println(
-            "Always option disabled, host file is not writeable");
-      }
+	private void getResponse(String host, SshPublicKey pk) throws SshException {
+		String response = "";
+		BufferedReader reader = new BufferedReader(new InputStreamReader(
+				System.in));
 
-      System.out.print("Do you want to allow this host key? [" + options
-                       + "]: ");
+		while (!(response.equalsIgnoreCase("YES")
+				|| response.equalsIgnoreCase("NO") || (response
+				.equalsIgnoreCase("ALWAYS") && isHostFileWriteable()))) {
+			String options = (isHostFileWriteable() ? "Yes|No|Always"
+					: "Yes|No");
 
-      try {
-        response = reader.readLine();
-      }
-      catch(IOException ex) {
-        throw new SshException("Failed to read response", SshException.INTERNAL_ERROR);
-      }
-    }
+			if (!isHostFileWriteable()) {
+				System.out
+						.println("Always option disabled, host file is not writeable");
+			}
 
-    if (response.equalsIgnoreCase("YES")) {
-      allowHost(host, pk, false);
-    }
+			System.out.print("Do you want to allow this host key? [" + options
+					+ "]: ");
 
-    if (response.equalsIgnoreCase("ALWAYS") && isHostFileWriteable()) {
-      allowHost(host, pk, true);
-    }
+			try {
+				response = reader.readLine();
+			} catch (IOException ex) {
+				throw new SshException("Failed to read response",
+						SshException.INTERNAL_ERROR);
+			}
+		}
 
-    // Do nothing on NO
-  }
+		if (response.equalsIgnoreCase("YES")) {
+			allowHost(host, pk, false);
+		}
+
+		if (response.equalsIgnoreCase("ALWAYS") && isHostFileWriteable()) {
+			allowHost(host, pk, true);
+		}
+
+		// Do nothing on NO
+	}
 }

@@ -69,6 +69,7 @@ public class SftpFileInputStream extends InputStream {
 	SftpMessage currentMessage;
 	int currentMessageRemaining;
 	boolean isEOF = false;
+
 	/**
 	 * 
 	 * @param file
@@ -105,7 +106,7 @@ public class SftpFileInputStream extends InputStream {
 		this.file = file;
 		this.position = position;
 		this.sftp = file.getSFTPChannel();
-		
+
 		try {
 			bufferNextMessage();
 		} catch (IOException e) {
@@ -122,17 +123,17 @@ public class SftpFileInputStream extends InputStream {
 
 		try {
 
-			if(isEOF && currentMessageRemaining==0) {
+			if (isEOF && currentMessageRemaining == 0) {
 				return -1;
 			}
-			
+
 			int read = 0;
 			int wantsLength = len;
-			while (read < wantsLength && !isEOF ) {
+			while (read < wantsLength && !isEOF) {
 
 				if (currentMessage == null || currentMessageRemaining == 0) {
 					bufferNextMessage();
-					if(isEOF && read==0) {
+					if (isEOF && read == 0) {
 						return -1;
 					}
 				}
@@ -148,8 +149,8 @@ public class SftpFileInputStream extends InputStream {
 
 				currentMessageRemaining -= count;
 				currentMessage.skip(count);
-				
-				if(currentMessageRemaining == 0) {
+
+				if (currentMessageRemaining == 0) {
 					bufferNextMessage();
 				}
 				read += count;
@@ -166,10 +167,11 @@ public class SftpFileInputStream extends InputStream {
 		}
 	}
 
-	private void bufferNextMessage() throws SshException, IOException, SftpStatusException {
-		
+	private void bufferNextMessage() throws SshException, IOException,
+			SftpStatusException {
+
 		bufferMoreData();
-		
+
 		UnsignedInteger32 requestid = (UnsignedInteger32) outstandingRequests
 				.elementAt(0);
 		currentMessage = sftp.getResponse(requestid);

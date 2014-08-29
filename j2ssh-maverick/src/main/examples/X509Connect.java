@@ -38,138 +38,143 @@ import com.sshtools.ssh.SshSession;
 import com.sshtools.ssh.components.jce.Ssh2RsaPrivateKey;
 import com.sshtools.ssh.components.jce.SshX509RsaSha1PublicKey;
 import com.sshtools.ssh2.Ssh2Client;
+
 /**
  * This example demonstrates authenticating with x509 certificates.
- *
+ * 
  * @author Lee David Painter
  */
 public class X509Connect {
 
 	public static void main(String[] args) {
 
-
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(
+				System.in));
 
 		try {
 
-                    System.out.print("Hostname: ");
-                    String hostname = reader.readLine();
+			System.out.print("Hostname: ");
+			String hostname = reader.readLine();
 
-                    int idx = hostname.indexOf(':');
-                    int port = 22;
-                    if (idx > -1) {
-                        port = Integer.parseInt(hostname.substring(idx + 1));
-                        hostname = hostname.substring(0, idx);
+			int idx = hostname.indexOf(':');
+			int port = 22;
+			if (idx > -1) {
+				port = Integer.parseInt(hostname.substring(idx + 1));
+				hostname = hostname.substring(0, idx);
 
-                    }
+			}
 
-                    System.out.print("Username [Enter for " + System.getProperty("user.name") +
-                                     "]: ");
-                    String username = reader.readLine();
+			System.out.print("Username [Enter for "
+					+ System.getProperty("user.name") + "]: ");
+			String username = reader.readLine();
 
-                    if (username == null || username.trim().equals(""))
-                        username = System.getProperty("user.name");
+			if (username == null || username.trim().equals(""))
+				username = System.getProperty("user.name");
 
-                    System.out.println("Connecting to " + hostname);
+			System.out.println("Connecting to " + hostname);
 
-                    /**
-                     * Create an SshConnector instance
-                     */
-                    SshConnector con = SshConnector.createInstance();
+			/**
+			 * Create an SshConnector instance
+			 */
+			SshConnector con = SshConnector.createInstance();
 
-                    // Verify server host keys using the users known_hosts file
-                    con.getContext().setHostKeyVerification(new ConsoleKnownHostsKeyVerification());
+			// Verify server host keys using the users known_hosts file
+			con.getContext().setHostKeyVerification(
+					new ConsoleKnownHostsKeyVerification());
 
-                    System.out.print("Identity: ");
-                    String ident = reader.readLine();
+			System.out.print("Identity: ");
+			String ident = reader.readLine();
 
-                    System.out.print("Password: ");
-                    String passphrase = reader.readLine();
+			System.out.print("Password: ");
+			String passphrase = reader.readLine();
 
-                    System.out.println("Alias: ");
-                    String alias = reader.readLine();
+			System.out.println("Alias: ");
+			String alias = reader.readLine();
 
-                    KeyStore keystore = KeyStore.getInstance("PKCS12");
+			KeyStore keystore = KeyStore.getInstance("PKCS12");
 
-                    keystore.load(new FileInputStream(ident), passphrase.toCharArray());
+			keystore.load(new FileInputStream(ident), passphrase.toCharArray());
 
-                    RSAPrivateKey prv = (RSAPrivateKey) keystore.getKey(alias, passphrase.toCharArray());
-                    X509Certificate x509 = (X509Certificate) keystore.getCertificate(alias);
+			RSAPrivateKey prv = (RSAPrivateKey) keystore.getKey(alias,
+					passphrase.toCharArray());
+			X509Certificate x509 = (X509Certificate) keystore
+					.getCertificate(alias);
 
-                    /**
-                     * Connect to the host
-                     */
-                    final SshClient ssh = con.connect(new SocketTransport(hostname, port),
-                                                      username);
-                    System.out.println(ssh.toString());
+			/**
+			 * Connect to the host
+			 */
+			final SshClient ssh = con.connect(new SocketTransport(hostname,
+					port), username);
+			System.out.println(ssh.toString());
 
-                    String[] methods = ((Ssh2Client)ssh).getAuthenticationMethods(username);
+			String[] methods = ((Ssh2Client) ssh)
+					.getAuthenticationMethods(username);
 
-                    for(int i=0;i<methods.length;i++) {
-                        System.out.println(methods[i]);
-                    }
+			for (int i = 0; i < methods.length; i++) {
+				System.out.println(methods[i]);
+			}
 
-                    /**
-                     * Authenticate the user using password authentication
-                     */
-                    PublicKeyAuthentication pk = new PublicKeyAuthentication();
+			/**
+			 * Authenticate the user using password authentication
+			 */
+			PublicKeyAuthentication pk = new PublicKeyAuthentication();
 
-                    pk.setPublicKey(new SshX509RsaSha1PublicKey(x509));
-                    pk.setPrivateKey(new Ssh2RsaPrivateKey(prv));
+			pk.setPublicKey(new SshX509RsaSha1PublicKey(x509));
+			pk.setPrivateKey(new Ssh2RsaPrivateKey(prv));
 
-                    if(ssh.authenticate(pk) != SshAuthentication.COMPLETE) {
-                        throw new Exception("X509 authentication failed");
-                    }
+			if (ssh.authenticate(pk) != SshAuthentication.COMPLETE) {
+				throw new Exception("X509 authentication failed");
+			}
 
-                    /**
-                     * Start a session and do basic IO
-                     */
-                    if (ssh.isAuthenticated()) {
+			/**
+			 * Start a session and do basic IO
+			 */
+			if (ssh.isAuthenticated()) {
 
-                        // Some old SSH2 servers kill the connection after the first
-                        // session has closed and there are no other sessions started;
-                        // so to avoid this we create the first session and dont ever use it
-                        final SshSession session = ssh.openSessionChannel();
+				// Some old SSH2 servers kill the connection after the first
+				// session has closed and there are no other sessions started;
+				// so to avoid this we create the first session and dont ever
+				// use it
+				final SshSession session = ssh.openSessionChannel();
 
-                        // Use the newly added PseudoTerminalModes class to
-                        // turn off echo on the remote shell
-                        PseudoTerminalModes pty = new PseudoTerminalModes(ssh);
-                        pty.setTerminalMode(PseudoTerminalModes.ECHO, false);
+				// Use the newly added PseudoTerminalModes class to
+				// turn off echo on the remote shell
+				PseudoTerminalModes pty = new PseudoTerminalModes(ssh);
+				pty.setTerminalMode(PseudoTerminalModes.ECHO, false);
 
-                        session.requestPseudoTerminal("vt100", 80, 24, 0, 0, pty);
+				session.requestPseudoTerminal("vt100", 80, 24, 0, 0, pty);
 
-                        session.startShell();
+				session.startShell();
 
-                        Thread t = new Thread() {
-                            public void run() {
-                                try {
-                                    int read;
-                                    while ((read = session.getInputStream().read()) > -1) {
-                                        System.out.write(read);
-                                        System.out.flush();
-                                    }
-                                } catch (IOException ex) {
-                                    ex.printStackTrace();
-                                }
-                            }
-                        };
+				Thread t = new Thread() {
+					public void run() {
+						try {
+							int read;
+							while ((read = session.getInputStream().read()) > -1) {
+								System.out.write(read);
+								System.out.flush();
+							}
+						} catch (IOException ex) {
+							ex.printStackTrace();
+						}
+					}
+				};
 
-                        t.start();
-                        int read;
-                        byte[] buf = new byte[4096];
-                        while((read = System.in.read(buf)) > -1) {
-                            session.getOutputStream().write(buf,0,read);
+				t.start();
+				int read;
+				byte[] buf = new byte[4096];
+				while ((read = System.in.read(buf)) > -1) {
+					session.getOutputStream().write(buf, 0, read);
 
-                        }
+				}
 
-                        session.close();
-                    }
+				session.close();
+			}
 
-                    ssh.disconnect();
-                } catch(Throwable t) {
-                    t.printStackTrace();
-                }
+			ssh.disconnect();
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 	}
 
 }
-

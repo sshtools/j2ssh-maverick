@@ -22,8 +22,9 @@ package com.sshtools.ssh.components.jce;
 
 /**
  * MD5 message authentication implementation.
+ * 
  * @author Lee David Painter
- *
+ * 
  */
 public class HmacMD5 extends AbstractHmac {
 
@@ -31,7 +32,6 @@ public class HmacMD5 extends AbstractHmac {
 		super(JCEAlgorithms.JCE_HMACMD5, 16);
 	}
 
-	
 	public String getAlgorithm() {
 		return "hmac-md5";
 	}

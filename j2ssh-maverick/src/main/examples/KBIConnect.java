@@ -36,37 +36,38 @@ import com.sshtools.ssh2.KBIPrompt;
 import com.sshtools.ssh2.KBIRequestHandler;
 import com.sshtools.ssh2.Ssh2Client;
 import com.sshtools.ssh2.Ssh2Context;
+
 /**
  * This example demonstrates how to use keyboard-interactive authentication
- *
+ * 
  * @author Lee David Painter
  */
 public class KBIConnect {
 
 	public static void main(String[] args) {
 
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(
+				System.in));
 
 		try {
 
-
 			System.out.print("Hostname: ");
-
 
 			String hostname = reader.readLine();
 
 			int idx = hostname.indexOf(':');
 			int port = 22;
-			if(idx > -1) {
-				port = Integer.parseInt(hostname.substring(idx+1));
+			if (idx > -1) {
+				port = Integer.parseInt(hostname.substring(idx + 1));
 				hostname = hostname.substring(0, idx);
 
 			}
 
-			System.out.print("Username [Enter for " + System.getProperty("user.name") + "]: ");
+			System.out.print("Username [Enter for "
+					+ System.getProperty("user.name") + "]: ");
 			String username = reader.readLine();
 
-			if(username==null || username.trim().equals(""))
+			if (username == null || username.trim().equals(""))
 				username = System.getProperty("user.name");
 
 			System.out.println("Connecting to " + hostname);
@@ -78,34 +79,36 @@ public class KBIConnect {
 
 			// Lets do some host key verification
 			HostKeyVerification hkv = new HostKeyVerification() {
-			public boolean verifyHost(String hostname, SshPublicKey key) {
-				try {
-					System.out.println("The connected host's key (" + key.getAlgorithm() + ") is");
-					System.out.println(key.getFingerprint());
-				} catch (SshException e) {
+				public boolean verifyHost(String hostname, SshPublicKey key) {
+					try {
+						System.out.println("The connected host's key ("
+								+ key.getAlgorithm() + ") is");
+						System.out.println(key.getFingerprint());
+					} catch (SshException e) {
+					}
+					return true;
 				}
-				return true;
-			}
 			};
 
 			/**
 			 * Set our preferred public key type
 			 */
 			con.getContext().setHostKeyVerification(hkv);
-			con.getContext().setPreferredPublicKey(Ssh2Context.PUBLIC_KEY_SSHDSS);
+			con.getContext().setPreferredPublicKey(
+					Ssh2Context.PUBLIC_KEY_SSHDSS);
 
 			/**
 			 * Connect to the host
 			 */
-			Ssh2Client ssh = con.connect(new SocketTransport(hostname, port), username);
+			Ssh2Client ssh = con.connect(new SocketTransport(hostname, port),
+					username);
 
 			/**
 			 * Display the available authentication methods
 			 */
 			String[] methods = ssh.getAuthenticationMethods(username);
-			for(int i=0;i<methods.length;i++)
+			for (int i = 0; i < methods.length; i++)
 				System.out.println(methods[i]);
-
 
 			/**
 			 * Authenticate the user using password authentication
@@ -113,11 +116,12 @@ public class KBIConnect {
 			KBIAuthentication kbi = new KBIAuthentication();
 
 			kbi.setKBIRequestHandler(new KBIRequestHandler() {
-				public boolean showPrompts(String name, String instruction, KBIPrompt[] prompts) {
+				public boolean showPrompts(String name, String instruction,
+						KBIPrompt[] prompts) {
 					try {
 						System.out.println(name);
 						System.out.println(instruction);
-						for(int i=0;i<prompts.length;i++) {
+						for (int i = 0; i < prompts.length; i++) {
 							System.out.print(prompts[i].getPrompt());
 							prompts[i].setResponse(reader.readLine());
 						}
@@ -129,7 +133,7 @@ public class KBIConnect {
 				}
 			});
 
-			if(ssh.authenticate(kbi)!=SshAuthentication.COMPLETE) {
+			if (ssh.authenticate(kbi) != SshAuthentication.COMPLETE) {
 				System.out.println("Authentication failed!");
 				System.exit(0);
 			}
@@ -137,9 +141,9 @@ public class KBIConnect {
 			/**
 			 * Start a session and do basic IO
 			 */
-			if(ssh.isAuthenticated()) {
+			if (ssh.isAuthenticated()) {
 				SshSession session = ssh.openSessionChannel();
-				session.requestPseudoTerminal("vt100",80,24,0,0);
+				session.requestPseudoTerminal("vt100", 80, 24, 0, 0);
 				session.startShell();
 
 				final InputStream in = session.getInputStream();
@@ -147,10 +151,10 @@ public class KBIConnect {
 					public void run() {
 						try {
 							int read;
-							while((read = in.read()) > -1) {
-								System.out.print((char)read);
+							while ((read = in.read()) > -1) {
+								System.out.print((char) read);
 							}
-						} catch(Throwable t1) {
+						} catch (Throwable t1) {
 						} finally {
 							System.exit(0);
 						}
@@ -159,19 +163,16 @@ public class KBIConnect {
 				});
 				t.start();
 				int read;
-				while((read = System.in.read()) > -1) {
+				while ((read = System.in.read()) > -1) {
 					session.getOutputStream().write(read);
 				}
 
 				System.exit(0);
 			}
 
-
-			} catch(Throwable th) {
+		} catch (Throwable th) {
 			th.printStackTrace();
 		}
 	}
 
 }
-
-

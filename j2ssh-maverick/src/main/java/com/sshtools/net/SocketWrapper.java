@@ -30,55 +30,57 @@ import com.sshtools.ssh.SocketTimeoutSupport;
 import com.sshtools.ssh.SshTransport;
 
 /**
- *
- * Implements a basic wrapper around a Socket to provide an
- * <a href="../../maverick/ssh/SshTransport.html">SshTransport</a> suitable
- * for use in making connections using the <a href="../../maverick/ssh/SshConnector.html">SshConnector</a>.
- *
+ * 
+ * Implements a basic wrapper around a Socket to provide an <a
+ * href="../../maverick/ssh/SshTransport.html">SshTransport</a> suitable for use
+ * in making connections using the <a
+ * href="../../maverick/ssh/SshConnector.html">SshConnector</a>.
+ * 
  * @author Lee David Painter
  */
-public class SocketWrapper
-    implements SshTransport, SocketTimeoutSupport{
+public class SocketWrapper implements SshTransport, SocketTimeoutSupport {
 
-  protected Socket socket;
+	protected Socket socket;
 
-  /**
-   * Create a SocketWrapper
-   * @param socket
-   */
-  public SocketWrapper(Socket socket) {
-    this.socket = socket;
-  }
+	/**
+	 * Create a SocketWrapper
+	 * 
+	 * @param socket
+	 */
+	public SocketWrapper(Socket socket) {
+		this.socket = socket;
+	}
 
-  public InputStream getInputStream() throws IOException {
-    return socket.getInputStream();
-  }
+	public InputStream getInputStream() throws IOException {
+		return socket.getInputStream();
+	}
 
-  public OutputStream getOutputStream() throws IOException {
-    return socket.getOutputStream();
-  }
+	public OutputStream getOutputStream() throws IOException {
+		return socket.getOutputStream();
+	}
 
-  public String getHost() {
-    return socket.getInetAddress() == null ? "proxied" : socket.getInetAddress().getHostAddress();
-  }
+	public String getHost() {
+		return socket.getInetAddress() == null ? "proxied" : socket
+				.getInetAddress().getHostAddress();
+	}
 
-  public int getPort() {
-    return socket.getPort();
-  }
+	public int getPort() {
+		return socket.getPort();
+	}
 
-  public void close() throws IOException {
-    socket.close();
-  }
+	public void close() throws IOException {
+		socket.close();
+	}
 
-  public SshTransport duplicate() throws IOException {
-    return new SocketWrapper(new Socket(getHost(), socket.getPort()));
-  }
+	public SshTransport duplicate() throws IOException {
+		return new SocketWrapper(new Socket(getHost(), socket.getPort()));
+	}
 
-  public void setSoTimeout(int timeout) throws IOException {
-      socket.setSoTimeout(timeout);
-  }
+	public void setSoTimeout(int timeout) throws IOException {
+		socket.setSoTimeout(timeout);
+	}
 
-  public int getSoTimeout() throws IOException{
-      return socket.getSoTimeout();
-  }
+	public int getSoTimeout() throws IOException {
+		return socket.getSoTimeout();
+	}
 }

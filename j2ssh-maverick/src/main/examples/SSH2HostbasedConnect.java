@@ -36,16 +36,18 @@ import com.sshtools.ssh.SshSession;
 import com.sshtools.ssh.components.SshKeyPair;
 import com.sshtools.ssh.components.SshPublicKey;
 import com.sshtools.ssh2.Ssh2HostbasedAuthentication;
+
 /**
  * This example demonstrates how to connect using SSH2 hostbased authentication.
- *
+ * 
  * @author Lee David Painter
  */
 public class SSH2HostbasedConnect {
 
 	public static void main(String[] args) {
 
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(
+				System.in));
 
 		try {
 
@@ -54,16 +56,17 @@ public class SSH2HostbasedConnect {
 
 			int idx = hostname.indexOf(':');
 			int port = 22;
-			if(idx > -1) {
-				port = Integer.parseInt(hostname.substring(idx+1));
+			if (idx > -1) {
+				port = Integer.parseInt(hostname.substring(idx + 1));
 				hostname = hostname.substring(0, idx);
 
 			}
 
-			System.out.print("Username [Enter for " + System.getProperty("user.name") + "]: ");
+			System.out.print("Username [Enter for "
+					+ System.getProperty("user.name") + "]: ");
 			String username = reader.readLine();
 
-			if(username==null || username.trim().equals(""))
+			if (username == null || username.trim().equals(""))
 				username = System.getProperty("user.name");
 
 			System.out.println("Connecting to " + hostname);
@@ -73,19 +76,19 @@ public class SSH2HostbasedConnect {
 			 */
 			SshConnector con = SshConnector.createInstance();
 
-
 			// Lets do some host key verification
 			HostKeyVerification hkv = new HostKeyVerification() {
-			public boolean verifyHost(String hostname, SshPublicKey key) {
-				try {
-					System.out.println("The connected host's key (" + key.getAlgorithm() + ") is");
-					System.out.println(key.getFingerprint());
-				} catch (SshException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				public boolean verifyHost(String hostname, SshPublicKey key) {
+					try {
+						System.out.println("The connected host's key ("
+								+ key.getAlgorithm() + ") is");
+						System.out.println(key.getFingerprint());
+					} catch (SshException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					return true;
 				}
-				return true;
-			}
 			};
 
 			con.getContext().setHostKeyVerification(hkv);
@@ -93,7 +96,8 @@ public class SSH2HostbasedConnect {
 			/**
 			 * Connect to the host
 			 */
-			SshClient ssh = con.connect(new SocketTransport(hostname, port), username);
+			SshClient ssh = con.connect(new SocketTransport(hostname, port),
+					username);
 
 			/**
 			 * Authenticate the user using password authentication
@@ -101,16 +105,19 @@ public class SSH2HostbasedConnect {
 			Ssh2HostbasedAuthentication pk = new Ssh2HostbasedAuthentication();
 
 			do {
-                    pk.setClientUsername(username);
-                    //	TODO This is 1.4 only - what effect will this have?
-                    
-                    //pk.setClientHostname(java.net.InetAddress.getLocalHost().getCanonicalHostName());
-                    pk.setClientHostname(java.net.InetAddress.getLocalHost().getHostName());
+				pk.setClientUsername(username);
+				// TODO This is 1.4 only - what effect will this have?
+
+				// pk.setClientHostname(java.net.InetAddress.getLocalHost().getCanonicalHostName());
+				pk.setClientHostname(java.net.InetAddress.getLocalHost()
+						.getHostName());
 				System.out.print("Private key file: ");
-				SshPrivateKeyFile pkfile = SshPrivateKeyFileFactory.parse(new FileInputStream("C:/Documents and Settings/lee/.ssh/id_rsa"));
+				SshPrivateKeyFile pkfile = SshPrivateKeyFileFactory
+						.parse(new FileInputStream(
+								"C:/Documents and Settings/lee/.ssh/id_rsa"));
 
 				SshKeyPair pair;
-				if(pkfile.isPassphraseProtected()) {
+				if (pkfile.isPassphraseProtected()) {
 					System.out.print("Passphrase: ");
 					pair = pkfile.toKeyPair(reader.readLine());
 				} else
@@ -118,30 +125,28 @@ public class SSH2HostbasedConnect {
 
 				pk.setPrivateKey(pair.getPrivateKey());
 				pk.setPublicKey(pair.getPublicKey());
-			}
-			while(ssh.authenticate(pk)!=SshAuthentication.COMPLETE
+			} while (ssh.authenticate(pk) != SshAuthentication.COMPLETE
 					&& ssh.isConnected());
 
 			/**
 			 * Start a session and do basic IO
 			 */
-			if(ssh.isAuthenticated()) {
+			if (ssh.isAuthenticated()) {
 
 				SshSession session = ssh.openSessionChannel();
-				session.requestPseudoTerminal("vt100",80,24,0,0);
+				session.requestPseudoTerminal("vt100", 80, 24, 0, 0);
 				session.startShell();
-
 
 				final InputStream in = session.getInputStream();
 				Thread t = new Thread(new Runnable() {
 					public void run() {
 						try {
 							int read;
-							while((read = in.read()) > -1) {
-								if(read > 0)
-									System.out.print((char)read);
+							while ((read = in.read()) > -1) {
+								if (read > 0)
+									System.out.print((char) read);
 							}
-						} catch(Throwable t1) {
+						} catch (Throwable t1) {
 							t1.printStackTrace();
 						} finally {
 							System.exit(0);
@@ -151,20 +156,16 @@ public class SSH2HostbasedConnect {
 				});
 				t.start();
 				int read;
-				while((read = System.in.read()) > -1) {
+				while ((read = System.in.read()) > -1) {
 					session.getOutputStream().write(read);
 				}
 
 				System.exit(0);
 			}
 
-
-			} catch(Throwable th) {
+		} catch (Throwable th) {
 			th.printStackTrace();
 		}
 	}
 
 }
-
-
-

@@ -24,8 +24,9 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  * MD5 digest implementation.
+ * 
  * @author Lee David Painter
- *
+ * 
  */
 public class MD5Digest extends AbstractDigest {
 

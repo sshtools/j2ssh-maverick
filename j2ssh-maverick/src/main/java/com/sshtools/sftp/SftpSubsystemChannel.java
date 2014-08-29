@@ -31,9 +31,9 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import com.sshtools.events.Event;
-import com.sshtools.events.EventLog;
 import com.sshtools.events.EventServiceImplementation;
 import com.sshtools.events.J2SSHEventCodes;
+import com.sshtools.logging.Log;
 import com.sshtools.ssh.Packet;
 import com.sshtools.ssh.SshException;
 import com.sshtools.ssh.SshIOException;
@@ -259,14 +259,14 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 
 			try {
 				bar.skip(1);
-	
+
 				serverVersion = (int) bar.readInt();
 				version = Math.min(serverVersion, MAX_VERSION);
 				try {
 					while (bar.available() > 0) {
 						String name = bar.readString();
 						byte[] data = bar.readBinaryString();
-	
+
 						extensions.put(name, data);
 					}
 				} catch (Throwable t) {
@@ -288,7 +288,7 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 		}
 
 	}
-	
+
 	public void close() throws IOException {
 		responses.clear();
 		super.close();
@@ -497,7 +497,7 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 	 */
 	public void setAttributes(SftpFile file, SftpFileAttributes attrs)
 			throws SftpStatusException, SshException {
-		if (file.getHandle()==null) {
+		if (file.getHandle() == null) {
 			throw new SftpStatusException(SftpStatusException.INVALID_HANDLE,
 					"The handle is not an open file handle!");
 		}
@@ -706,7 +706,8 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 
 			}
 
-			for (Enumeration<UnsignedInteger32> e = requests.elements(); e.hasMoreElements();) {
+			for (Enumeration<UnsignedInteger32> e = requests.elements(); e
+					.hasMoreElements();) {
 				getOKRequestStatus(e.nextElement());
 			}
 
@@ -800,11 +801,11 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 			throws SftpStatusException, SshException,
 			TransferCancelledException {
 
-		// #ifdef DEBUG
-		EventLog.LogEvent(this, "Performing optimized read length=" + length
-				+ " postion=" + position + " blocksize=" + blocksize
-				+ " outstandingRequests=" + outstandingRequests);
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Performing optimized read length="
+					+ length + " postion=" + position + " blocksize="
+					+ blocksize + " outstandingRequests=" + outstandingRequests);
+		}
 
 		if (length <= 0) {
 			// We cannot perform an optimised read on this file since we don't
@@ -815,10 +816,10 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 
 		try {
 			if (blocksize < 1 || blocksize > 32768) {
-				// #ifdef DEBUG
-				EventLog.LogEvent(this,
-						"Blocksize to large for some SFTP servers, reseting to 32K");
-				// #endif
+				if (Log.isDebugEnabled()) {
+					Log.debug(this,
+							"Blocksize to large for some SFTP servers, reseting to 32K");
+				}
 				blocksize = 32768;
 			}
 
@@ -876,7 +877,8 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 					progress.progressed(position);
 			}
 
-			Vector<UnsignedInteger32> requests = new Vector<UnsignedInteger32>(outstandingRequests);
+			Vector<UnsignedInteger32> requests = new Vector<UnsignedInteger32>(
+					outstandingRequests);
 			long offset = position;
 
 			if (numBlocks < osr) {
@@ -884,14 +886,14 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 			}
 
 			if (osr <= 0) {
-				// #ifdef DEBUG
-				EventLog.LogEvent(this,
-						"We calculated zero outstanding requests! numBlocks="
-								+ numBlocks + " outstandingRequests="
-								+ outstandingRequests + " blocksize="
-								+ blocksize + " length=" + length
-								+ " position=" + position);
-				// #endif
+				if (Log.isDebugEnabled()) {
+					Log.debug(this,
+							"We calculated zero outstanding requests! numBlocks="
+									+ numBlocks + " outstandingRequests="
+									+ outstandingRequests + " blocksize="
+									+ blocksize + " length=" + length
+									+ " position=" + position);
+				}
 				osr = 1; // We need at least one or there will be trouble.
 			}
 
@@ -901,10 +903,10 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 
 			// Fire an initial round of requests
 			for (i = 0; i < osr; i++) {
-				// #ifdef DEBUG
-				EventLog.LogEvent(this, "Posting request for file offset "
-						+ offset);
-				// #endif
+				if (Log.isDebugEnabled()) {
+					Log.debug(this, "Posting request for file offset "
+							+ offset);
+				}
 				requests.addElement(postReadRequest(handle, offset, blocksize));
 				offset += blocksize;
 
@@ -920,12 +922,12 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 				requests.removeElementAt(0);
 				SftpMessage bar = getResponse(requestId);
 				if (bar.getType() == SSH_FXP_DATA) {
-					dataLen = (int)bar.readInt();
-					//tmp = bar.readBinaryString();
-					// #ifdef DEBUG
-					EventLog.LogEvent(this, "Get " + dataLen
-							+ " bytes of data");
-					// #endif
+					dataLen = (int) bar.readInt();
+					// tmp = bar.readBinaryString();
+					if (Log.isDebugEnabled()) {
+						Log.debug(this, "Get " + dataLen
+								+ " bytes of data");
+					}
 					out.write(bar.array(), bar.getPosition(), dataLen);
 					completed++;
 					bar.dispose();
@@ -935,21 +937,21 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 				} else if (bar.getType() == SSH_FXP_STATUS) {
 					int status = (int) bar.readInt();
 					if (status == SftpStatusException.SSH_FX_EOF) {
-						// #ifdef DEBUG
-						EventLog.LogEvent(this, "Received file EOF");
-						// #endif
+						if (Log.isDebugEnabled()) {
+							Log.debug(this, "Received file EOF");
+						}
 						return;
 					}
 					if (version >= 3) {
 						String desc = bar.readString().trim();
-						// #ifdef DEBUG
-						EventLog.LogEvent(this, "Received status " + desc);
-						// #endif
+						if (Log.isDebugEnabled()) {
+							Log.debug(this, "Received status " + desc);
+						}
 						throw new SftpStatusException(status, desc);
 					}
-					// #ifdef DEBUG
-					EventLog.LogEvent(this, "Received status " + status);
-					// #endif
+					if (Log.isDebugEnabled()) {
+						Log.debug(this, "Received status " + status);
+					}
 					throw new SftpStatusException(status);
 				} else {
 					close();
@@ -964,10 +966,10 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 				 */
 				if (requests.isEmpty()
 						|| completed + requests.size() < expected) {
-					// #ifdef DEBUG
-					EventLog.LogEvent(this, "Posting request for file offset "
-							+ offset);
-					// #endif
+					if (Log.isDebugEnabled()) {
+						Log.debug(this,
+								"Posting request for file offset " + offset);
+					}
 					requests.addElement(postReadRequest(handle, offset,
 							blocksize));
 					offset += blocksize;
@@ -979,9 +981,9 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 		} catch (SshIOException ex) {
 			throw ex.getRealException();
 		} catch (EOFException ex) {
-			// #ifdef DEBUG
-			EventLog.LogEvent(this, "Channel has reached EOF", ex);
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(this, "Channel has reached EOF", ex);
+			}
 			// The channel has reached EOF before the transfer could complete so
 			// make sure the channel is closed and throw a status exception
 			try {
@@ -1021,16 +1023,16 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 			throws SftpStatusException, SshException,
 			TransferCancelledException {
 
-		// #ifdef DEBUG
-		EventLog.LogEvent(this, "Performing synchronous read postion="
-				+ position + " blocksize=" + blocksize);
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Performing synchronous read postion="
+					+ position + " blocksize=" + blocksize);
+		}
 
 		if (blocksize < 1 || blocksize > 32768) {
-			// #ifdef DEBUG
-			EventLog.LogEvent(this,
-					"Blocksize to large for some SFTP servers, reseting to 32K");
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(this,
+						"Blocksize to large for some SFTP servers, reseting to 32K");
+			}
 			blocksize = 32768;
 		}
 
@@ -1363,9 +1365,9 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 	public int listChildren(SftpFile file, Vector<SftpFile> children)
 			throws SftpStatusException, SshException {
 		if (file.isDirectory()) {
-			if (file.getHandle()==null) {
+			if (file.getHandle() == null) {
 				file = openDirectory(file.getAbsolutePath());
-				if (file.getHandle()==null) {
+				if (file.getHandle() == null) {
 					throw new SftpStatusException(
 							SftpStatusException.SSH_FX_FAILURE,
 							"Failed to open directory");
@@ -1579,11 +1581,12 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 	private String getSafeHandle(byte[] handle) {
 		return Base64.encodeBytes(handle, 0, handle.length, true);
 	}
-	
+
 	@SuppressWarnings("unused")
 	private byte[] getSafeHandle(String handle) {
 		return Base64.decode(handle);
 	}
+
 	/**
 	 * Open a directory.
 	 * 
@@ -1665,7 +1668,6 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 			file.setHandle(null);
 		}
 	}
-
 
 	/**
 	 * Remove an empty directory.
@@ -1790,7 +1792,7 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 
 	/**
 	 * Get the attributes of a file. This method does not follow symbolic links
-	 * so will return the attributes of an actual link, not its target. 
+	 * so will return the attributes of an actual link, not its target.
 	 * 
 	 * @param path
 	 * @return
@@ -1801,7 +1803,7 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 			throws SftpStatusException, SshException {
 		return getAttributes(path, SSH_FXP_LSTAT);
 	}
-	
+
 	protected SftpFileAttributes getAttributes(String path, int messageId)
 			throws SftpStatusException, SshException {
 		try {
@@ -1874,7 +1876,7 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 			throws SftpStatusException, SshException {
 
 		try {
-			if (file.getHandle()==null) {
+			if (file.getHandle() == null) {
 				return getAttributes(file.getAbsolutePath());
 			}
 			UnsignedInteger32 requestId = nextRequestId();
@@ -2059,29 +2061,29 @@ public class SftpSubsystemChannel extends SubsystemChannel {
 
 		public boolean requestBlock(UnsignedInteger32 requestId,
 				MessageHolder holder) throws InterruptedException {
-			
+
 			if (responses.containsKey(requestId)) {
 				holder.msg = (Message) responses.get(requestId);
 				return false;
 			}
-			
-			synchronized(SftpThreadSynchronizer.this){
-				
+
+			synchronized (SftpThreadSynchronizer.this) {
+
 				boolean canBlock = !isBlocking;
 
 				if (responses.containsKey(requestId)) {
 					holder.msg = (Message) responses.get(requestId);
 					return false;
 				}
-	
+
 				if (canBlock) {
 					isBlocking = true;
 				} else {
 					wait();
 				}
-	
+
 				return canBlock;
-			
+
 			}
 
 		}

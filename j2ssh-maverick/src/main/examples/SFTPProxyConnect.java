@@ -33,24 +33,25 @@ import com.sshtools.ssh.SshConnector;
 import com.sshtools.ssh.SshException;
 import com.sshtools.ssh.SshTunnel;
 import com.sshtools.ssh.components.SshPublicKey;
+
 /**
  * This example demonstrates how to proxy an SFTP session over a port forwarding
  * tunnel; this is useful for accessing servers behind a firewall.
- *
+ * 
  * @author Lee David Painter
  */
 public class SFTPProxyConnect {
 
 	public static void main(String[] args) {
 
-
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(
+				System.in));
 
 		try {
 
-               String proxyServer = "proxy.foo.com";
-               String targetServer = "target.foo.com";
-               String username = "lee";
+			String proxyServer = "proxy.foo.com";
+			String targetServer = "target.foo.com";
+			String username = "lee";
 
 			/**
 			 * Create an SshConnector instance
@@ -59,15 +60,16 @@ public class SFTPProxyConnect {
 
 			// Lets do some host key verification
 			HostKeyVerification hkv = new HostKeyVerification() {
-			public boolean verifyHost(String hostname, SshPublicKey key) {
-				try {
-					System.out.println("The connected host's key (" + key.getAlgorithm() + ") is");
-					System.out.println(key.getFingerprint());
-				} catch (SshException e) {
-					e.printStackTrace();
+				public boolean verifyHost(String hostname, SshPublicKey key) {
+					try {
+						System.out.println("The connected host's key ("
+								+ key.getAlgorithm() + ") is");
+						System.out.println(key.getFingerprint());
+					} catch (SshException e) {
+						e.printStackTrace();
+					}
+					return true;
 				}
-				return true;
-			}
 			};
 
 			con.getContext().setHostKeyVerification(hkv);
@@ -75,7 +77,8 @@ public class SFTPProxyConnect {
 			/**
 			 * Connect to the host
 			 */
-			final SshClient ssh = con.connect(new SocketTransport(proxyServer, 22), username);
+			final SshClient ssh = con.connect(new SocketTransport(proxyServer,
+					22), username);
 
 			/**
 			 * Authenticate the user using password authentication
@@ -85,45 +88,39 @@ public class SFTPProxyConnect {
 			do {
 				System.out.print("Password: ");
 				pwd.setPassword(reader.readLine());
-			}
-			while(ssh.authenticate(pwd)!=SshAuthentication.COMPLETE
+			} while (ssh.authenticate(pwd) != SshAuthentication.COMPLETE
 					&& ssh.isConnected());
-
 
 			/**
 			 * Start a tunnel and proxy another connection over it
 			 */
-			if(ssh.isAuthenticated()) {
+			if (ssh.isAuthenticated()) {
 
+				SshTunnel tunnel = ssh.openForwardingChannel(targetServer, 22,
+						"127.0.0.1", 22, "127.0.0.1", 22, null, null);
 
-                 SshTunnel tunnel = ssh.openForwardingChannel(targetServer, 22, "127.0.0.1", 22,
-                    "127.0.0.1", 22, null, null);
+				SshClient forwardedConnection = con.connect(tunnel, username);
 
+				forwardedConnection.authenticate(pwd);
 
-                 SshClient forwardedConnection = con.connect(tunnel, username);
+				SftpClient sftp = new SftpClient(forwardedConnection);
 
-                 forwardedConnection.authenticate(pwd);
+				SftpFile[] children = sftp.ls();
 
-                 SftpClient sftp = new SftpClient(forwardedConnection);
+				for (int i = 0; i < children.length; i++)
+					System.out.println(SftpClient.formatLongname(children[i]));
 
-                 SftpFile[] children = sftp.ls();
+				sftp.quit();
 
-                 for(int i=0;i<children.length;i++)
-                   System.out.println(SftpClient.formatLongname(children[i]));
-
-                   sftp.quit();
-
-                   forwardedConnection.disconnect();
+				forwardedConnection.disconnect();
 
 			}
 
-               ssh.disconnect();
+			ssh.disconnect();
 
-
-			} catch(Throwable th) {
+		} catch (Throwable th) {
 			th.printStackTrace();
 		}
 	}
 
 }
-

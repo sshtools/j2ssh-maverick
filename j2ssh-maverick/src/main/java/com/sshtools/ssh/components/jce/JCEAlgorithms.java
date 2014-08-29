@@ -21,9 +21,10 @@
 package com.sshtools.ssh.components.jce;
 
 /**
- * Interface containing the JCE algorithms required by the API. 
+ * Interface containing the JCE algorithms required by the API.
+ * 
  * @author Lee David Painter
- *
+ * 
  */
 public interface JCEAlgorithms {
 
@@ -65,10 +66,10 @@ public interface JCEAlgorithms {
 	public static final String JCE_RSANONEPKCS1PADDING = "RSA";
 	/** X509 certificate algorithm 'X.509' **/
 	public static final String JCE_X509 = "X.509";
-	
+
 	/** AES in counter clock mode 'AES/CTR/NoPadding' **/
 	public static final String JCE_AESCTRNOPADDING = "AES/CTR/NoPadding";
-	
+
 	/** 3DES in counter clock mode 'DESede/CTR/NoPadding' **/
 	public static final String JCE_3DESCTRNOPADDING = "DESede/CTR/NoPadding";
 
@@ -78,6 +79,4 @@ public interface JCEAlgorithms {
 	/** ARCFOUR cipher **/
 	public static final String JCE_ARCFOUR = "ARCFOUR";
 
-	
-	
 }

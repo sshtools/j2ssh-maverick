@@ -24,7 +24,7 @@ package com.sshtools.ssh2;
 import java.io.IOException;
 import java.util.Hashtable;
 
-import com.sshtools.events.EventLog;
+import com.sshtools.logging.Log;
 import com.sshtools.ssh.ChannelOpenException;
 import com.sshtools.ssh.SshContext;
 import com.sshtools.ssh.SshException;
@@ -81,8 +81,8 @@ class ConnectionProtocol extends SshMessageRouter implements
 	};
 
 	TransportProtocol transport;
-	Hashtable<String,ChannelFactory> channelfactories = new Hashtable<String,ChannelFactory>();
-	Hashtable<String,GlobalRequestHandler> requesthandlers = new Hashtable<String,GlobalRequestHandler>();
+	Hashtable<String, ChannelFactory> channelfactories = new Hashtable<String, ChannelFactory>();
+	Hashtable<String, GlobalRequestHandler> requesthandlers = new Hashtable<String, GlobalRequestHandler>();
 
 	public ConnectionProtocol(TransportProtocol transport, SshContext context,
 			boolean buffered) {
@@ -123,10 +123,10 @@ class ConnectionProtocol extends SshMessageRouter implements
 
 	public boolean sendGlobalRequest(GlobalRequest request, boolean wantreply,
 			long timeout) throws SshException {
-		
+
 		ByteArrayWriter msg = new ByteArrayWriter();
 		try {
-			
+
 			msg.write(SSH_MSG_GLOBAL_REQUEST);
 			msg.writeString(request.getName());
 			msg.writeBoolean(wantreply);
@@ -135,21 +135,23 @@ class ConnectionProtocol extends SshMessageRouter implements
 
 			}
 
-			// #ifdef DEBUG
-			EventLog.LogEvent(this, "Sending SSH_MSG_GLOBAL_REQUEST request="
-					+ request.getName() + " wantreply=" + wantreply);
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(
+						this,
+						"Sending SSH_MSG_GLOBAL_REQUEST request="
+								+ request.getName() + " wantreply=" + wantreply);
+			}
 			sendMessage(msg.toByteArray(), true);
 
 			if (wantreply) {
 				SshMessage reply = getGlobalMessages().nextMessage(
 						GLOBAL_REQUEST_MESSAGES, timeout);
 				if (reply.getMessageId() == SSH_MSG_REQUEST_SUCCESS) {
-					// #ifdef DEBUG
-					EventLog.LogEvent(this,
-							"Received SSH_MSG_REQUEST_SUCCESS request="
-									+ request.getName());
-					// #endif
+					if (Log.isDebugEnabled()) {
+						Log.debug(this,
+								"Received SSH_MSG_REQUEST_SUCCESS request="
+										+ request.getName());
+					}
 					if (reply.available() > 0) {
 						byte[] tmp = new byte[reply.available()];
 						reply.read(tmp);
@@ -159,12 +161,11 @@ class ConnectionProtocol extends SshMessageRouter implements
 					}
 					return true;
 				}
-				// #ifdef DEBUG
-				EventLog.LogEvent(
-						this,
-						"Received SSH_MSG_REQUEST_FAILURE request="
-								+ request.getName());
-				// #endif
+				if (Log.isDebugEnabled()) {
+					Log.debug(this,
+							"Received SSH_MSG_REQUEST_FAILURE request="
+									+ request.getName());
+				}
 				return false;
 			}
 			return true;
@@ -190,9 +191,9 @@ class ConnectionProtocol extends SshMessageRouter implements
 			throws SshException, ChannelOpenException {
 		openChannel(channel, requestdata, 0);
 	}
-	
-	public void openChannel(Ssh2Channel channel, byte[] requestdata, long timeout)
-			throws SshException, ChannelOpenException {
+
+	public void openChannel(Ssh2Channel channel, byte[] requestdata,
+			long timeout) throws SshException, ChannelOpenException {
 
 		// synchronized(channelOpenLock) {
 		try {
@@ -200,12 +201,12 @@ class ConnectionProtocol extends SshMessageRouter implements
 			int channelid = allocateChannel(channel);
 
 			if (channelid == -1) {
-				// #ifdef DEBUG
-				EventLog.LogEvent(this,
-						"Maximum number of channels exceeded! active="
-								+ getChannelCount() + " channels="
-								+ getMaxChannels());
-				// #endif
+				if (Log.isDebugEnabled()) {
+					Log.debug(this,
+							"Maximum number of channels exceeded! active="
+									+ getChannelCount() + " channels="
+									+ getMaxChannels());
+				}
 				throw new ChannelOpenException(
 						"Maximum number of channels exceeded",
 						ChannelOpenException.RESOURCE_SHORTAGE);
@@ -218,7 +219,7 @@ class ConnectionProtocol extends SshMessageRouter implements
 			 * packet size .... channel type specific data follows
 			 */
 			ByteArrayWriter msg = new ByteArrayWriter();
-			
+
 			try {
 				msg.write(SSH_MSG_CHANNEL_OPEN);
 				msg.writeString(channel.getName());
@@ -227,15 +228,18 @@ class ConnectionProtocol extends SshMessageRouter implements
 				msg.writeInt(channel.getPacketSize());
 				if (requestdata != null) {
 					msg.write(requestdata);
-	
+
 				}
-	
-				// #ifdef DEBUG
-				EventLog.LogEvent(this, "Sending SSH_MSG_CHANNEL_OPEN type="
-						+ channel.getName() + " id=" + channel.getChannelId()
-						+ " window=" + channel.getWindowSize() + " packet="
-						+ channel.getPacketSize());
-				// #endif
+
+				if (Log.isDebugEnabled()) {
+					Log.debug(
+							this,
+							"Sending SSH_MSG_CHANNEL_OPEN type="
+									+ channel.getName() + " id="
+									+ channel.getChannelId() + " window="
+									+ channel.getWindowSize() + " packet="
+									+ channel.getPacketSize());
+				}
 				transport.sendMessage(msg.toByteArray(), true);
 
 			} finally {
@@ -244,21 +248,17 @@ class ConnectionProtocol extends SshMessageRouter implements
 				} catch (IOException e) {
 				}
 			}
-			// #ifdef DEBUG
-			// EventLog.LogEvent(this,"sent transport message, getting message stores next message");
-			// #endif
 
 			SshMessage reply = channel.getMessageStore().nextMessage(
 					CHANNEL_OPEN_RESPONSE_MESSAGES, timeout);
 
 			if (reply.getMessageId() == SSH_MSG_CHANNEL_OPEN_FAILURE) {
 
-				// #ifdef DEBUG
-				EventLog.LogEvent(
-						this,
-						"Received SSH_MSG_CHANNEL_OPEN_FAILURE id="
-								+ channel.getChannelId());
-				// #endif
+				if (Log.isDebugEnabled()) {
+					Log.debug(this,
+							"Received SSH_MSG_CHANNEL_OPEN_FAILURE id="
+									+ channel.getChannelId());
+				}
 
 				freeChannel(channel);
 				int reason = (int) reply.readInt();
@@ -270,14 +270,13 @@ class ConnectionProtocol extends SshMessageRouter implements
 			byte[] responsedata = new byte[reply.available()];
 			reply.read(responsedata);
 
-			// #ifdef DEBUG
-			EventLog.LogEvent(
-					this,
-					"Received SSH_MSG_CHANNEL_OPEN_CONFIRMATION id="
-							+ channel.getChannelId() + " rid=" + remoteid
-							+ " window=" + remotewindow + " packet="
-							+ remotepacket);
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(this,
+						"Received SSH_MSG_CHANNEL_OPEN_CONFIRMATION id="
+								+ channel.getChannelId() + " rid=" + remoteid
+								+ " window=" + remotewindow + " packet="
+								+ remotepacket);
+			}
 
 			channel.open(remoteid, remotewindow, remotepacket, responsedata);
 
@@ -325,11 +324,12 @@ class ConnectionProtocol extends SshMessageRouter implements
 						.available()] : null;
 				message.read(requestdata);
 
-				// #ifdef DEBUG
-				EventLog.LogEvent(this, "Received SSH_MSG_CHANNEL_OPEN rid="
-						+ remoteid + " window=" + remotewindow + " packet="
-						+ remotepacket);
-				// #endif
+				if (Log.isDebugEnabled()) {
+					Log.debug(this,
+							"Received SSH_MSG_CHANNEL_OPEN rid=" + remoteid
+									+ " window=" + remotewindow + " packet="
+									+ remotepacket);
+				}
 
 				processChannelOpenRequest(type, remoteid, remotewindow,
 						remotepacket, requestdata);
@@ -343,11 +343,11 @@ class ConnectionProtocol extends SshMessageRouter implements
 				byte[] requestdata = new byte[message.available()];
 				message.read(requestdata);
 
-				// #ifdef DEBUG
-				EventLog.LogEvent(this,
-						"Received SSH_MSG_GLOBAL_REQUEST request="
-								+ requestname + " wantreply=" + wantreply);
-				// #endif
+				if (Log.isDebugEnabled()) {
+					Log.debug(this,
+							"Received SSH_MSG_GLOBAL_REQUEST request="
+									+ requestname + " wantreply=" + wantreply);
+				}
 
 				// Process the request
 				processGlobalRequest(requestname, wantreply, requestdata);
@@ -364,9 +364,9 @@ class ConnectionProtocol extends SshMessageRouter implements
 
 	void processChannelOpenRequest(String type, int remoteid, int remotewindow,
 			int remotepacket, byte[] requestdata) throws SshException {
-		
+
 		ByteArrayWriter response = new ByteArrayWriter();
-		
+
 		try {
 
 			if (channelfactories.containsKey(type)) {
@@ -375,11 +375,11 @@ class ConnectionProtocol extends SshMessageRouter implements
 							.get(type)).createChannel(type, requestdata);
 
 					// Allocate a channel
-					// #ifdef DEBUG
-					EventLog.LogEvent(this,
-							"There are " + this.getChannelCount()
-									+ " channels open");
-					// #endif
+					if (Log.isDebugEnabled()) {
+						Log.debug(this,
+								"There are " + this.getChannelCount()
+										+ " channels open");
+					}
 
 					int localid = allocateChannel(channel);
 
@@ -397,17 +397,18 @@ class ConnectionProtocol extends SshMessageRouter implements
 
 							}
 
-							// #ifdef DEBUG
-							EventLog.LogEvent(
-									this,
-									"Sending SSH_MSG_CHANNEL_OPEN_CONFIRMATION type="
-											+ channel.getName() + " id="
-											+ channel.getChannelId() + " rid="
-											+ remoteid + " window="
-											+ channel.getWindowSize()
-											+ " packet="
-											+ channel.getPacketSize());
-							// #endif
+							if (Log.isDebugEnabled()) {
+								Log.debug(
+										this,
+										"Sending SSH_MSG_CHANNEL_OPEN_CONFIRMATION type="
+												+ channel.getName() + " id="
+												+ channel.getChannelId()
+												+ " rid=" + remoteid
+												+ " window="
+												+ channel.getWindowSize()
+												+ " packet="
+												+ channel.getPacketSize());
+							}
 							transport.sendMessage(response.toByteArray(), true);
 
 							channel.open(remoteid, remotewindow, remotepacket);
@@ -447,10 +448,10 @@ class ConnectionProtocol extends SshMessageRouter implements
 				response.writeString("");
 			}
 
-			// #ifdef DEBUG
-			EventLog.LogEvent(this, "Sending SSH_MSG_CHANNEL_OPEN_FAILURE rid="
-					+ remoteid);
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(this,
+						"Sending SSH_MSG_CHANNEL_OPEN_FAILURE rid=" + remoteid);
+			}
 			transport.sendMessage(response.toByteArray(), true);
 		} catch (IOException ex1) {
 			throw new SshException(ex1.getMessage(),
@@ -477,17 +478,17 @@ class ConnectionProtocol extends SshMessageRouter implements
 
 			if (wantreply) {
 				if (success) {
-					
+
 					response.write(SSH_MSG_REQUEST_SUCCESS);
 					if (request.getData() != null) {
 						response.write(request.getData());
 					}
 
-					// #ifdef DEBUG
-					EventLog.LogEvent(this,
-							"Sending SSH_MSG_REQUEST_SUCCESS request="
-									+ requestname);
-					// #endif
+					if (Log.isDebugEnabled()) {
+						Log.debug(this,
+								"Sending SSH_MSG_REQUEST_SUCCESS request="
+										+ requestname);
+					}
 					transport.sendMessage(response.toByteArray(), true);
 				} else {
 					// Return a response
@@ -507,7 +508,7 @@ class ConnectionProtocol extends SshMessageRouter implements
 	}
 
 	protected void onThreadExit() {
-		if (transport!=null && transport.isConnected()) {
+		if (transport != null && transport.isConnected()) {
 			transport.disconnect(TransportProtocol.CONNECTION_LOST, "Exiting");
 		}
 		stop();

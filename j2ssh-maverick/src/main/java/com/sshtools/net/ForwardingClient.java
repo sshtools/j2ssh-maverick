@@ -33,9 +33,9 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import com.sshtools.events.Event;
-import com.sshtools.events.EventLog;
 import com.sshtools.events.EventServiceImplementation;
 import com.sshtools.events.J2SSHEventCodes;
+import com.sshtools.logging.Log;
 import com.sshtools.ssh.ChannelAdapter;
 import com.sshtools.ssh.Client;
 import com.sshtools.ssh.ForwardingRequestListener;
@@ -177,17 +177,17 @@ import com.sshtools.util.IOStreamConnector;
 public class ForwardingClient implements Client {
 
 	SshClient ssh;
-	
+
 	protected Hashtable<String, Vector<ActiveTunnel>> incomingtunnels = new Hashtable<String, Vector<ActiveTunnel>>();
 	protected Hashtable<String, String> remoteforwardings = new Hashtable<String, String>();
 	protected Hashtable<String, Vector<ActiveTunnel>> outgoingtunnels = new Hashtable<String, Vector<ActiveTunnel>>();
 	protected Hashtable<String, SocketListener> socketlisteners = new Hashtable<String, SocketListener>();
 	protected Vector<ForwardingClientListener> clientlisteners = new Vector<ForwardingClientListener>();
-	
+
 	ForwardingListener forwardinglistener = new ForwardingListener();
 	TunnelListener tunnellistener = new TunnelListener();
 	boolean isXForwarding = false;
-	
+
 	/** The key used to identify X11 forwarding **/
 	public static final String X11_KEY = "X11";
 	/** The lowest possible random port to select * */
@@ -224,9 +224,9 @@ public class ForwardingClient implements Client {
 
 				}
 			}
-			// #ifdef DEBUG
-			EventLog.LogEvent(this, "enumerated socketlisteners");
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(this, "enumerated socketlisteners");
+			}
 
 			Enumeration<String> en2 = incomingtunnels.keys();
 			String key;
@@ -250,15 +250,15 @@ public class ForwardingClient implements Client {
 						hostToConnect, portToConnect);
 
 			}
-			// #ifdef DEBUG
-			EventLog.LogEvent(this, "enumerated incomingtunnels");
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(this, "enumerated incomingtunnels");
+			}
 
 			String display = ssh.getContext().getX11Display();
 
-			// #ifdef DEBUG
-			EventLog.LogEvent(this, "display is " + display);
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(this, "display is " + display);
+			}
 
 			if (display != null && isXForwarding) {
 				String hostname = "localhost";
@@ -323,8 +323,8 @@ public class ForwardingClient implements Client {
 		listener.start();
 
 		socketlisteners.put(key, listener);
-		
-		if(!outgoingtunnels.containsKey(key)) {
+
+		if (!outgoingtunnels.containsKey(key)) {
 			outgoingtunnels.put(key, new Vector<ActiveTunnel>());
 		}
 
@@ -381,8 +381,8 @@ public class ForwardingClient implements Client {
 				listener.start();
 
 				socketlisteners.put(key, listener);
-				
-				if(!outgoingtunnels.containsKey(key)) {
+
+				if (!outgoingtunnels.containsKey(key)) {
 					outgoingtunnels.put(key, new Vector<ActiveTunnel>());
 				}
 
@@ -428,7 +428,8 @@ public class ForwardingClient implements Client {
 				- (remoteforwardings.containsKey(X11_KEY) ? 1 : 0)];
 		int index = 0;
 
-		for (Enumeration<String> e = remoteforwardings.keys(); e.hasMoreElements();) {
+		for (Enumeration<String> e = remoteforwardings.keys(); e
+				.hasMoreElements();) {
 			String key = e.nextElement();
 			if (!key.equals(X11_KEY))
 				r[index++] = key;
@@ -445,7 +446,8 @@ public class ForwardingClient implements Client {
 		String[] r = new String[socketlisteners.size()];
 		int index = 0;
 
-		for (Enumeration<String> e = socketlisteners.keys(); e.hasMoreElements();) {
+		for (Enumeration<String> e = socketlisteners.keys(); e
+				.hasMoreElements();) {
 			r[index++] = e.nextElement();
 
 		}
@@ -473,7 +475,7 @@ public class ForwardingClient implements Client {
 			throw new IOException(key
 					+ " is not a valid local forwarding configuration");
 		}
-		
+
 		return new ActiveTunnel[] {};
 	}
 
@@ -489,45 +491,45 @@ public class ForwardingClient implements Client {
 			int portToBind) throws IOException {
 		return getLocalForwardingTunnels(generateKey(addressToBind, portToBind));
 	}
-	
-	
+
 	/**
 	 * Get all the active remote forwarding tunnels
+	 * 
 	 * @return
 	 * @throws IOException
 	 */
 	public ActiveTunnel[] getRemoteForwardingTunnels() throws IOException {
 		Vector<ActiveTunnel> v = new Vector<ActiveTunnel>();
 		String[] remoteForwardings = getRemoteForwardings();
-		for(int i=0;i<remoteForwardings.length;i++) {
+		for (int i = 0; i < remoteForwardings.length; i++) {
 			ActiveTunnel[] tmp = getRemoteForwardingTunnels(remoteForwardings[i]);
-			for(int x=0;x<tmp.length;x++) {
+			for (int x = 0; x < tmp.length; x++) {
 				v.add(tmp[x]);
 			}
 		}
-		
+
 		return (ActiveTunnel[]) v.toArray(new ActiveTunnel[v.size()]);
 	}
 
-	
 	/**
 	 * Get all the active local forwarding tunnels
+	 * 
 	 * @return
 	 * @throws IOException
 	 */
 	public ActiveTunnel[] getLocalForwardingTunnels() throws IOException {
 		Vector<ActiveTunnel> v = new Vector<ActiveTunnel>();
 		String[] localForwardings = getLocalForwardings();
-		for(int i=0;i<localForwardings.length;i++) {
+		for (int i = 0; i < localForwardings.length; i++) {
 			ActiveTunnel[] tmp = getLocalForwardingTunnels(localForwardings[i]);
-			for(int x=0;x<tmp.length;x++) {
+			for (int x = 0; x < tmp.length; x++) {
 				v.add(tmp[x]);
 			}
 		}
-		
+
 		return (ActiveTunnel[]) v.toArray(new ActiveTunnel[v.size()]);
 	}
-	
+
 	/**
 	 * Get the active tunnels for a remote forwarding listener.
 	 * 
@@ -543,16 +545,16 @@ public class ForwardingClient implements Client {
 				Vector<ActiveTunnel> v = incomingtunnels.get(key);
 				ActiveTunnel[] t = new ActiveTunnel[v.size()];
 				v.copyInto(t);
-	
+
 				return t;
 			}
 		}
-		
+
 		if (!remoteforwardings.containsKey(key)) {
 			throw new IOException(key
 					+ " is not a valid remote forwarding configuration");
 		}
-		
+
 		return new ActiveTunnel[] {};
 	}
 
@@ -616,7 +618,7 @@ public class ForwardingClient implements Client {
 		if (ssh.requestRemoteForwarding(addressToBind, portToBind,
 				hostToConnect, portToConnect, forwardinglistener)) {
 			String key = generateKey(addressToBind, portToBind);
-			if(!incomingtunnels.containsKey(key)) {
+			if (!incomingtunnels.containsKey(key)) {
 				incomingtunnels.put(key, new Vector<ActiveTunnel>());
 			}
 			remoteforwardings.put(key, hostToConnect + ":" + portToConnect);
@@ -652,11 +654,11 @@ public class ForwardingClient implements Client {
 		if (remoteforwardings.containsKey(X11_KEY))
 			throw new SshException("X11 forwarding is already in use!",
 					SshException.FORWARDING_ERROR);
-		
-		if(!incomingtunnels.containsKey(X11_KEY)) {
+
+		if (!incomingtunnels.containsKey(X11_KEY)) {
 			incomingtunnels.put(X11_KEY, new Vector<ActiveTunnel>());
 		}
-		
+
 		ssh.getContext().setX11Display(display);
 		ssh.getContext().setX11RequestListener(forwardinglistener);
 
@@ -732,8 +734,8 @@ public class ForwardingClient implements Client {
 		if (remoteforwardings.containsKey(X11_KEY))
 			throw new SshException("X11 forwarding is already in use!",
 					SshException.FORWARDING_ERROR);
-		
-		if(!incomingtunnels.containsKey(X11_KEY)) {
+
+		if (!incomingtunnels.containsKey(X11_KEY)) {
 			incomingtunnels.put(X11_KEY, new Vector<ActiveTunnel>());
 		}
 		ssh.getContext().setX11Display(display);
@@ -768,33 +770,35 @@ public class ForwardingClient implements Client {
 
 				try {
 					while (bar.available() > 0) {
-	
+
 						short family = bar.readShort();
 						short len = bar.readShort();
 						byte[] address = new byte[len];
 						bar.read(address);
-	
+
 						len = bar.readShort();
 						byte[] number = new byte[len];
 						bar.read(number);
-	
+
 						len = bar.readShort();
 						byte[] name = new byte[len];
 						bar.read(name);
-	
+
 						len = bar.readShort();
 						byte[] data = new byte[len];
 						bar.read(data);
-	
+
 						String n = new String(number);
 						int d = Integer.parseInt(n);
-	
+
 						String protocol = new String(name);
 						if (protocol.equals("MIT-MAGIC-COOKIE-1")) {
 							if (family == 0) {
-								// We cannot use InetAddress.getByAddress since it
+								// We cannot use InetAddress.getByAddress since
+								// it
 								// was only introduced in 1.4 :(
-								// So we're going to do this really crude formating
+								// So we're going to do this really crude
+								// formating
 								// of the IP Address and get by name
 								// which works just as well!
 								String ip = (address[0] & 0xFF) + "."
@@ -819,33 +823,33 @@ public class ForwardingClient implements Client {
 									}
 								}
 							}
-						} 
-					} 
-					} finally {
-						bar.close();
+						}
 					}
+				} finally {
+					bar.close();
 				}
-				String hostname = "localhost";
-				int screen = 0;
-	
-				int idx = display.indexOf(':');
-				if (idx != -1) {
-					hostname = display.substring(0, idx);
-					display = display.substring(idx + 1);
-				}
-	
-				if ((idx = display.indexOf('.')) > -1) {
-					screen = Integer.parseInt(display.substring(idx + 1));
-				}
-	
-				for (int i = 0; i < clientlisteners.size(); i++) {
-					((ForwardingClientListener) clientlisteners.elementAt(i))
-							.forwardingStarted(
-									ForwardingClientListener.X11_FORWARDING,
-									X11_KEY, hostname, screen);
-				}
-	
-				isXForwarding = true;
+			}
+			String hostname = "localhost";
+			int screen = 0;
+
+			int idx = display.indexOf(':');
+			if (idx != -1) {
+				hostname = display.substring(0, idx);
+				display = display.substring(idx + 1);
+			}
+
+			if ((idx = display.indexOf('.')) > -1) {
+				screen = Integer.parseInt(display.substring(idx + 1));
+			}
+
+			for (int i = 0; i < clientlisteners.size(); i++) {
+				((ForwardingClientListener) clientlisteners.elementAt(i))
+						.forwardingStarted(
+								ForwardingClientListener.X11_FORWARDING,
+								X11_KEY, hostname, screen);
+			}
+
+			isXForwarding = true;
 		} catch (IOException ioe) {
 			throw new SshException(ioe.getMessage(),
 					SshException.FORWARDING_ERROR);
@@ -906,9 +910,8 @@ public class ForwardingClient implements Client {
 			incomingtunnels.remove(key);
 		}
 
-
 		if (!remoteforwardings.containsKey(key)) {
-			if(killActiveTunnels && killedTunnels) {
+			if (killActiveTunnels && killedTunnels) {
 				return;
 			}
 			throw new SshException("Remote forwarding has not been started on "
@@ -919,7 +922,7 @@ public class ForwardingClient implements Client {
 			return;
 
 		ssh.cancelRemoteForwarding(bindAddress, bindPort);
-		
+
 		String destination = (String) remoteforwardings.get(key);
 
 		int idx = destination.indexOf(":");
@@ -972,7 +975,8 @@ public class ForwardingClient implements Client {
 			return;
 		}
 
-		for (Enumeration<String> e = remoteforwardings.keys(); e.hasMoreElements();) {
+		for (Enumeration<String> e = remoteforwardings.keys(); e
+				.hasMoreElements();) {
 			String host = (String) e.nextElement();
 
 			if (host == null)
@@ -1032,7 +1036,8 @@ public class ForwardingClient implements Client {
 	 */
 	public synchronized void stopAllLocalForwarding(boolean killActiveTunnels)
 			throws SshException {
-		for (Enumeration<String> e = socketlisteners.keys(); e.hasMoreElements();) {
+		for (Enumeration<String> e = socketlisteners.keys(); e
+				.hasMoreElements();) {
 			stopLocalForwarding((String) e.nextElement(), killActiveTunnels);
 		}
 	}
@@ -1082,7 +1087,7 @@ public class ForwardingClient implements Client {
 			return;
 
 		boolean killedTunnels = false;
-		
+
 		if (killActiveTunnels) {
 			try {
 				ActiveTunnel[] tunnels = getLocalForwardingTunnels(key);
@@ -1097,9 +1102,9 @@ public class ForwardingClient implements Client {
 			}
 			outgoingtunnels.remove(key);
 		}
-		
+
 		if (!socketlisteners.containsKey(key)) {
-			if(killActiveTunnels && killedTunnels) {
+			if (killActiveTunnels && killedTunnels) {
 				return;
 			}
 			throw new SshException("Local forwarding has not been started for "
@@ -1107,7 +1112,7 @@ public class ForwardingClient implements Client {
 		}
 		// Stop the ServerSocket
 		SocketListener listener = (SocketListener) socketlisteners.get(key);
-		
+
 		listener.stop();
 
 		// Remove the listener
@@ -1223,22 +1228,22 @@ public class ForwardingClient implements Client {
 				// glue forwarding channel in to connection to server out
 				rx = new IOStreamConnector();
 				rx.addListener(listener);
-				//rx.setCloseInput(true);
+				// rx.setCloseInput(true);
 				rx.connect(channel.getInputStream(), channel.getTransport()
 						.getOutputStream());
 
 				// glue connection to server in to forwarding channel out
 				tx = new IOStreamConnector();
 				tx.addListener(listener);
-				//tx.setCloseOutput(false);
+				// tx.setCloseOutput(false);
 				tx.connect(channel.getTransport().getInputStream(),
 						channel.getOutputStream());
 
 				String key = generateKey(channel.getListeningAddress(),
 						channel.getListeningPort());
 
-				Hashtable<String,Vector<ActiveTunnel>> owner = channel.isLocal() ? outgoingtunnels
-						: incomingtunnels;
+				Hashtable<String, Vector<ActiveTunnel>> owner = channel
+						.isLocal() ? outgoingtunnels : incomingtunnels;
 
 				if (!owner.containsKey(key)) {
 					owner.put(key, new Vector<ActiveTunnel>());
@@ -1248,7 +1253,7 @@ public class ForwardingClient implements Client {
 
 				tunnels.addElement(this);
 			} catch (Exception ex) {
-				EventLog.LogEvent(this, "Exception whilst opening channel", ex);
+				Log.error(this, "Exception whilst opening channel", ex);
 				try {
 					channel.close();
 				} catch (Exception e) {
@@ -1276,7 +1281,7 @@ public class ForwardingClient implements Client {
 			String key = generateKey(channel.getListeningAddress(),
 					channel.getListeningPort());
 
-			Hashtable<String,Vector<ActiveTunnel>> owner = channel.isLocal() ? outgoingtunnels
+			Hashtable<String, Vector<ActiveTunnel>> owner = channel.isLocal() ? outgoingtunnels
 					: incomingtunnels;
 
 			Vector<ActiveTunnel> tunnels = owner.get(key);
@@ -1299,13 +1304,15 @@ public class ForwardingClient implements Client {
 		class IOStreamListener implements
 				IOStreamConnector.IOStreamConnectorListener {
 			public synchronized void connectorClosed(IOStreamConnector connector) {
-				// #ifdef DEBUG
-				EventLog.LogEvent(this,
-						"Tunnel connector closed id=" + channel.getChannelId()
-								+ " localEOF=" + channel.isLocalEOF()
-								+ " remoteEOF=" + channel.isRemoteEOF()
-								+ " closed=" + channel.isClosed());
-				// #endif
+				if (Log.isDebugEnabled()) {
+					Log.debug(
+							this,
+							"Tunnel connector closed id="
+									+ channel.getChannelId() + " localEOF="
+									+ channel.isLocalEOF() + " remoteEOF="
+									+ channel.isRemoteEOF() + " closed="
+									+ channel.isClosed());
+				}
 				if (!channel.isClosed()) {
 					try {
 						channel.getTransport().close();
@@ -1324,15 +1331,15 @@ public class ForwardingClient implements Client {
 			}
 
 			public void connectorTimeout(IOStreamConnector connector) {
-				// #ifdef DEBUG
-				EventLog.LogEvent(
-						this,
-						"IO timeout detected in tunnel id="
-								+ channel.getChannelId() + " localEOF="
-								+ channel.isLocalEOF() + " remoteEOF="
-								+ channel.isRemoteEOF() + " closed="
-								+ channel.isClosed());
-				// #endif
+				if (Log.isDebugEnabled()) {
+					Log.debug(
+							this,
+							"IO timeout detected in tunnel id="
+									+ channel.getChannelId() + " localEOF="
+									+ channel.isLocalEOF() + " remoteEOF="
+									+ channel.isRemoteEOF() + " closed="
+									+ channel.isClosed());
+				}
 
 				if (channel.isLocalEOF() || channel.isRemoteEOF()) {
 					try {
@@ -1383,32 +1390,34 @@ public class ForwardingClient implements Client {
 						break;
 					}
 
-					Enumeration<ForwardingClientListener> en = clientlisteners.elements();
+					Enumeration<ForwardingClientListener> en = clientlisteners
+							.elements();
 					ForwardingClientListener listener;
 					boolean accepted = true;
 					while (en.hasMoreElements()) {
 						listener = en.nextElement();
-						if(!listener.acceptLocalForwarding(socket.getRemoteSocketAddress(), 
-								hostToConnect, 
+						if (!listener.acceptLocalForwarding(
+								socket.getRemoteSocketAddress(), hostToConnect,
 								portToConnect)) {
 							accepted = false;
 							try {
 								socket.close();
 							} catch (Exception e) {
-								// #ifdef DEBUG
-								EventLog.LogEvent(
-										this,
-										"Listener denied local forwarding to " + hostToConnect + ":" + portToConnect);
-								// #endif
+								if (Log.isDebugEnabled()) {
+									Log.debug(this,
+											"Listener denied local forwarding to "
+													+ hostToConnect + ":"
+													+ portToConnect);
+								}
 							}
 							break;
 						}
 					}
-					
-					if(!accepted) {
+
+					if (!accepted) {
 						continue;
 					}
-					
+
 					Thread t = new Thread() {
 
 						public void run() {
@@ -1424,7 +1433,7 @@ public class ForwardingClient implements Client {
 								socket.setSoTimeout(30000);
 							} catch (Exception ex) {
 
-								EventLog.LogEvent(this,
+								Log.error(this,
 										"Exception whilst opening channel", ex);
 
 								try {
@@ -1455,11 +1464,11 @@ public class ForwardingClient implements Client {
 				thread = null;
 			}
 		}
-		
+
 		public String getHostToConnect() {
 			return hostToConnect;
 		}
-		
+
 		public int getPortToConnect() {
 			return portToConnect;
 		}

@@ -32,159 +32,160 @@ import java.util.Hashtable;
 import com.sshtools.util.Base64;
 
 /**
- *
+ * 
  * @author Lee David Painter
  */
 public abstract class Base64EncodedFileFormat {
-  /**  */
-  protected String begin;
+	/**  */
+	protected String begin;
 
-  /**  */
-  protected String end;
-  private Hashtable<String,String> headers = new Hashtable<String,String>();
-  private int MAX_LINE_LENGTH = 70;
+	/**  */
+	protected String end;
+	private Hashtable<String, String> headers = new Hashtable<String, String>();
+	private int MAX_LINE_LENGTH = 70;
 
-  protected Base64EncodedFileFormat(String begin, String end) {
-    this.begin = begin;
-    this.end = end;
-  }
+	protected Base64EncodedFileFormat(String begin, String end) {
+		this.begin = begin;
+		this.end = end;
+	}
 
-  public static boolean isFormatted(byte[] formattedKey, String begin,
-                                    String end) {
-    String test = new String(formattedKey);
+	public static boolean isFormatted(byte[] formattedKey, String begin,
+			String end) {
+		String test = new String(formattedKey);
 
-    if ( (test.indexOf(begin) >= 0) && (test.indexOf(end) > 0)) {
-      return true;
-    }
-	return false;
-  }
+		if ((test.indexOf(begin) >= 0) && (test.indexOf(end) > 0)) {
+			return true;
+		}
+		return false;
+	}
 
-  public void setHeaderValue(String headerTag, String headerValue) {
-    headers.put(headerTag, headerValue);
-  }
+	public void setHeaderValue(String headerTag, String headerValue) {
+		headers.put(headerTag, headerValue);
+	}
 
-  public String getHeaderValue(String headerTag) {
-    return (String) headers.get(headerTag);
-  }
+	public String getHeaderValue(String headerTag) {
+		return (String) headers.get(headerTag);
+	}
 
-  protected byte[] getKeyBlob(byte[] formattedKey) throws IOException {
-    BufferedReader reader = new BufferedReader(new InputStreamReader(
-        new ByteArrayInputStream(formattedKey)));
+	protected byte[] getKeyBlob(byte[] formattedKey) throws IOException {
+		BufferedReader reader = new BufferedReader(new InputStreamReader(
+				new ByteArrayInputStream(formattedKey)));
 
-    String line;
-    String headerTag;
-    String headerValue;
-    StringBuffer blobBuf=new StringBuffer("");
-    
-    int index;
+		String line;
+		String headerTag;
+		String headerValue;
+		StringBuffer blobBuf = new StringBuffer("");
 
-    // Read in the lines looking for the start
-    do {
-      line = reader.readLine();
+		int index;
 
-      if (line == null) {
-        throw new IOException("Incorrect file format!");
-      }
+		// Read in the lines looking for the start
+		do {
+			line = reader.readLine();
 
-    } while (!line.trim().endsWith(begin));
+			if (line == null) {
+				throw new IOException("Incorrect file format!");
+			}
 
-    // Read the headers
-    while (true) {
-      line = reader.readLine();
+		} while (!line.trim().endsWith(begin));
 
-      if (line == null) {
-        throw new IOException("Incorrect file format!");
-      }
-      
-      line = line.trim();
+		// Read the headers
+		while (true) {
+			line = reader.readLine();
 
-      index = line.indexOf(": ");
+			if (line == null) {
+				throw new IOException("Incorrect file format!");
+			}
 
-      if (index > 0) {
-        while (line.endsWith("\\")) {
-          line = line.substring(0, line.length() - 1);
+			line = line.trim();
 
-          String tmp = reader.readLine();
+			index = line.indexOf(": ");
 
-          if (tmp == null) {
-            throw new IOException(
-                "Incorrect file format!");
-          }
+			if (index > 0) {
+				while (line.endsWith("\\")) {
+					line = line.substring(0, line.length() - 1);
 
-          line += tmp.trim();
-        }
+					String tmp = reader.readLine();
 
-        // Record the header
-        headerTag = line.substring(0, index);
-        headerValue = line.substring(index + 2);
-        headers.put(headerTag, headerValue);
-      }
-      else {
-        break;
-      }
-    }
+					if (tmp == null) {
+						throw new IOException("Incorrect file format!");
+					}
 
-    // This is now the public key blob Base64 encoded
-    while (true) {
-      blobBuf.append(line);
+					line += tmp.trim();
+				}
 
-      line = reader.readLine();
+				// Record the header
+				headerTag = line.substring(0, index);
+				headerValue = line.substring(index + 2);
+				headers.put(headerTag, headerValue);
+			} else {
+				break;
+			}
+		}
 
-      if (line == null) {
-        throw new IOException("Invalid file format!");
-      }
+		// This is now the public key blob Base64 encoded
+		while (true) {
+			blobBuf.append(line);
 
-      line = line.trim();
-      
-      if (line.endsWith(end)) {
-        break;
-      }
-    }
+			line = reader.readLine();
 
-    // Convert the blob to some useful data
-    return Base64.decode(blobBuf.toString());
+			if (line == null) {
+				throw new IOException("Invalid file format!");
+			}
 
-  }
+			line = line.trim();
 
-  protected byte[] formatKey(byte[] keyblob) throws IOException {
+			if (line.endsWith(end)) {
+				break;
+			}
+		}
 
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
+		// Convert the blob to some useful data
+		return Base64.decode(blobBuf.toString());
 
-    String headerTag;
-    String headerValue;
-    String line;
+	}
 
-    out.write(begin.getBytes());
-    out.write('\n');
+	protected byte[] formatKey(byte[] keyblob) throws IOException {
 
-    int pos;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-    for (Enumeration<String> e = headers.keys(); e.hasMoreElements(); ) {
-      headerTag = (String) e.nextElement();
-      headerValue = (String) headers.get(headerTag);
+		String headerTag;
+		String headerValue;
+		String line;
 
-      String header = headerTag + ": " + headerValue;
-      pos = 0;
+		out.write(begin.getBytes());
+		out.write('\n');
 
-      while (pos < header.length()) {
-        line = header.substring(pos,
-                                ( ( (pos + MAX_LINE_LENGTH) < header.length())
-                                 ? (pos + MAX_LINE_LENGTH) : header.length()))
-            + ( ( (pos + MAX_LINE_LENGTH) < header.length()) ? "\\" : "");
+		int pos;
 
-        out.write(line.getBytes());
-        out.write('\n');
-        pos += MAX_LINE_LENGTH;
-      }
-    }
+		for (Enumeration<String> e = headers.keys(); e.hasMoreElements();) {
+			headerTag = (String) e.nextElement();
+			headerValue = (String) headers.get(headerTag);
 
-    String encoded = Base64.encodeBytes(keyblob, false);
-    out.write(encoded.getBytes());
-    out.write('\n');
-    out.write(end.getBytes());
-    out.write('\n');
+			String header = headerTag + ": " + headerValue;
+			pos = 0;
 
-    return out.toByteArray();
+			while (pos < header.length()) {
+				line = header
+						.substring(
+								pos,
+								(((pos + MAX_LINE_LENGTH) < header.length()) ? (pos + MAX_LINE_LENGTH)
+										: header.length()))
+						+ (((pos + MAX_LINE_LENGTH) < header.length()) ? "\\"
+								: "");
 
-  }
+				out.write(line.getBytes());
+				out.write('\n');
+				pos += MAX_LINE_LENGTH;
+			}
+		}
+
+		String encoded = Base64.encodeBytes(keyblob, false);
+		out.write(encoded.getBytes());
+		out.write('\n');
+		out.write(end.getBytes());
+		out.write('\n');
+
+		return out.toByteArray();
+
+	}
 }

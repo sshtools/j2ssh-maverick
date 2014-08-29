@@ -37,9 +37,9 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import com.sshtools.events.Event;
-import com.sshtools.events.EventLog;
 import com.sshtools.events.EventServiceImplementation;
 import com.sshtools.events.J2SSHEventCodes;
+import com.sshtools.logging.Log;
 import com.sshtools.ssh.ChannelOpenException;
 import com.sshtools.ssh.Client;
 import com.sshtools.ssh.SshClient;
@@ -157,11 +157,11 @@ public class SftpClient implements Client {
 		 */
 		Ssh2Session ssh2 = (Ssh2Session) session;
 		if (!ssh2.startSubsystem("sftp")) {
-			// #ifdef DEBUG
-			EventLog.LogDebugEvent(this,
-					"The SFTP subsystem failed to start, attempting to execute provider "
-							+ ssh.getContext().getSFTPProvider());
-			// #endif
+			if (Log.isDebugEnabled()) {
+				Log.debug(this,
+						"The SFTP subsystem failed to start, attempting to execute provider "
+								+ ssh.getContext().getSFTPProvider());
+			}
 			// We could not start the subsystem try to fallback to the
 			// provider specified by the user
 			if (!ssh2.executeCommand(ssh.getContext().getSFTPProvider())) {
@@ -250,10 +250,10 @@ public class SftpClient implements Client {
 
 		this.transferMode = transferMode;
 
-		// #ifdef DEBUG
-		EventLog.LogDebugEvent(this, "Transfer mode set to "
-				+ (transferMode == MODE_BINARY ? "binary" : "text"));
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Transfer mode set to "
+					+ (transferMode == MODE_BINARY ? "binary" : "text"));
+		}
 	}
 
 	/**
@@ -275,11 +275,11 @@ public class SftpClient implements Client {
 	public void setRemoteEOL(int eolMode) {
 		this.eolMode = eolMode;
 
-		// #ifdef DEBUG
-		EventLog.LogDebugEvent(this, "Remote EOL set to "
-				+ (eolMode == EOL_CRLF ? "CRLF" : (eolMode == EOL_CR ? "CR"
-						: "LF")));
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Remote EOL set to "
+					+ (eolMode == EOL_CRLF ? "CRLF" : (eolMode == EOL_CR ? "CR"
+							: "LF")));
+		}
 
 	}
 
@@ -307,9 +307,9 @@ public class SftpClient implements Client {
 	public void setBufferSize(int buffersize) {
 		this.buffersize = buffersize;
 
-		// #ifdef DEBUG
-		EventLog.LogDebugEvent(this, "Buffer size set to " + buffersize);
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Buffer size set to " + buffersize);
+		}
 
 	}
 
@@ -328,10 +328,10 @@ public class SftpClient implements Client {
 		}
 		this.asyncRequests = asyncRequests;
 
-		// #ifdef DEBUG
-		EventLog.LogDebugEvent(this, "Max async requests set to "
-				+ asyncRequests);
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Max async requests set to "
+					+ asyncRequests);
+		}
 
 	}
 
@@ -373,9 +373,9 @@ public class SftpClient implements Client {
 		int old = this.umask;
 		this.umask = umask;
 
-		// #ifdef DEBUG
-		EventLog.LogDebugEvent(this, "umask " + umask);
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "umask " + umask);
+		}
 
 		return old;
 	}
@@ -427,10 +427,10 @@ public class SftpClient implements Client {
 			}
 		}
 
-		// #ifdef DEBUG
-		EventLog.LogDebugEvent(this, "Changing dir from " + cwd + " to "
-				+ (actual.equals("") ? "user default dir" : actual));
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Changing dir from " + cwd + " to "
+					+ (actual.equals("") ? "user default dir" : actual));
+		}
 
 		cwd = actual;
 	}
@@ -589,9 +589,9 @@ public class SftpClient implements Client {
 	public void mkdir(String dir) throws SftpStatusException, SshException {
 		String actual = resolveRemotePath(dir);
 
-		// #ifdef DEBUG
-		EventLog.LogDebugEvent(this, "Creating dir " + dir);
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Creating dir " + dir);
+		}
 
 		try {
 			sftp.getAttributes(actual);
@@ -605,10 +605,10 @@ public class SftpClient implements Client {
 			return;
 		}
 
-		// #ifdef DEBUG
-		EventLog.LogDebugEvent(this, "A file/folder with name " + dir
-				+ " already exists!");
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "A file/folder with name " + dir
+					+ " already exists!");
+		}
 
 		throw new SftpStatusException(SftpStatusException.SSH_FX_FAILURE,
 				"File already exists named " + dir);
@@ -716,9 +716,9 @@ public class SftpClient implements Client {
 
 		String actual = resolveRemotePath(path);
 
-		// #ifdef DEBUG
-		EventLog.LogDebugEvent(this, "Listing files for " + actual);
-		// #endif
+		if (Log.isDebugEnabled()) {
+			Log.debug(this, "Listing files for " + actual);
+		}
 
 		SftpFile file = sftp.openDirectory(actual);
 		Vector<SftpFile> children = new Vector<SftpFile>();
@@ -1057,7 +1057,8 @@ public class SftpClient implements Client {
 
 				}
 
-				out = EOLProcessor.createOutputStream(inputStyle, outputStyle, out);
+				out = EOLProcessor.createOutputStream(inputStyle, outputStyle,
+						out);
 			}
 
 			attrs = get(remote, out, progress, position);

@@ -52,7 +52,7 @@ public class PerformanceTest {
 	static long sourceFileChecksum = -1;
 	static File retreivedFile;
 	static DecimalFormat df = new DecimalFormat("#.00");
-	
+
 	public static void main(String[] args) {
 
 		final BufferedReader reader = new BufferedReader(new InputStreamReader(
@@ -90,16 +90,13 @@ public class PerformanceTest {
 			// System.out.println("****No cipher****");
 			// performTest(getDefaultConfiguration("none", true));
 
-
 			System.out.println("****JCE Provider with 3DES****");
 			performTest(getJCEConfiguration(Ssh2Context.CIPHER_TRIPLEDES_CBC,
 					false));
 
-
 			System.out.println("****JCE Provider with Blowfish****");
 			performTest(getJCEConfiguration(Ssh2Context.CIPHER_BLOWFISH_CBC,
 					false));
-
 
 			System.out.println("****JCE Provider with AES****");
 			performTest(getJCEConfiguration(Ssh2Context.CIPHER_AES128_CBC,
@@ -199,8 +196,8 @@ public class PerformanceTest {
 			float kbs;
 			if (e >= 1000) {
 				kbs = (((float) length / 1024) / ((float) e / 1000) / 1000);
-				System.out.println("Upload Transfered at "
-						+ df.format(kbs) + " MB/s");
+				System.out.println("Upload Transfered at " + df.format(kbs)
+						+ " MB/s");
 			} else {
 				System.out.println("Download transfered in under one second");
 			}
@@ -219,8 +216,8 @@ public class PerformanceTest {
 			e = t2 - t1;
 			if (e >= 1000) {
 				kbs = (((float) length / 1024) / ((float) e / 1000) / 1000);
-				System.out.println("Download Transfered at "
-						+ df.format(kbs) + " MB/s");
+				System.out.println("Download Transfered at " + df.format(kbs)
+						+ " MB/s");
 			} else {
 				System.out.println("Download transfered in under one second");
 			}

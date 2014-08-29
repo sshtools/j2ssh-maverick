@@ -34,12 +34,11 @@ import com.sshtools.ssh.components.SshDsaPublicKey;
 import com.sshtools.util.SimpleASNReader;
 
 /**
- * DSA private key implementation for the SSH2 protocol. 
+ * DSA private key implementation for the SSH2 protocol.
  * 
  * @author Lee David Painter
  */
 public class Ssh2DsaPrivateKey implements SshDsaPrivateKey {
-
 
 	protected DSAPrivateKey prv;
 	private Ssh2DsaPublicKey pub;
@@ -49,15 +48,16 @@ public class Ssh2DsaPrivateKey implements SshDsaPrivateKey {
 		this.pub = new Ssh2DsaPublicKey(pub);
 	}
 
-	public Ssh2DsaPrivateKey(BigInteger p,
-            BigInteger q,
-            BigInteger g,
-            BigInteger x,
-            BigInteger y) throws SshException {
+	public Ssh2DsaPrivateKey(BigInteger p, BigInteger q, BigInteger g,
+			BigInteger x, BigInteger y) throws SshException {
 
 		try {
-			KeyFactory kf = JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_DSA)==null ? KeyFactory.getInstance(JCEAlgorithms.JCE_DSA) : KeyFactory.getInstance(JCEAlgorithms.JCE_DSA, JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_DSA));
-			DSAPrivateKeySpec spec = new DSAPrivateKeySpec(x,p,q,g);
+			KeyFactory kf = JCEProvider
+					.getProviderForAlgorithm(JCEAlgorithms.JCE_DSA) == null ? KeyFactory
+					.getInstance(JCEAlgorithms.JCE_DSA) : KeyFactory
+					.getInstance(JCEAlgorithms.JCE_DSA, JCEProvider
+							.getProviderForAlgorithm(JCEAlgorithms.JCE_DSA));
+			DSAPrivateKeySpec spec = new DSAPrivateKeySpec(x, p, q, g);
 			prv = (DSAPrivateKey) kf.generatePrivate(spec);
 
 			pub = new Ssh2DsaPublicKey(p, q, g, y);
@@ -69,45 +69,54 @@ public class Ssh2DsaPrivateKey implements SshDsaPrivateKey {
 
 	public byte[] sign(byte[] data) throws IOException {
 		try {
-			Signature l_sig = JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_SHA1WithDSA) == null ? Signature.getInstance(JCEAlgorithms.JCE_SHA1WithDSA) : Signature.getInstance(JCEAlgorithms.JCE_SHA1WithDSA, JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_SHA1WithDSA));
+			Signature l_sig = JCEProvider
+					.getProviderForAlgorithm(JCEAlgorithms.JCE_SHA1WithDSA) == null ? Signature
+					.getInstance(JCEAlgorithms.JCE_SHA1WithDSA)
+					: Signature
+							.getInstance(
+									JCEAlgorithms.JCE_SHA1WithDSA,
+									JCEProvider
+											.getProviderForAlgorithm(JCEAlgorithms.JCE_SHA1WithDSA));
 			l_sig.initSign(prv);
 			l_sig.update(data);
 
-            byte[] signature = l_sig.sign();
-            
-            SimpleASNReader asn = new SimpleASNReader(signature);
-            asn.getByte();
-            asn.getLength();
-            asn.getByte();
+			byte[] signature = l_sig.sign();
 
-            byte[] r = asn.getData();
-            asn.getByte();
+			SimpleASNReader asn = new SimpleASNReader(signature);
+			asn.getByte();
+			asn.getLength();
+			asn.getByte();
 
-            byte[] s = asn.getData();
+			byte[] r = asn.getData();
+			asn.getByte();
 
-            byte[] decoded = null;
-            int numSize = 32;
-            if(r.length < numSize) {
-            	numSize = 28;
-            	if(r.length < numSize) {
-            		numSize = 20;
-            	}
-            } 
+			byte[] s = asn.getData();
 
-            decoded = new byte[numSize*2];
-        	if (r.length >= numSize) {
-                System.arraycopy(r, r.length - numSize, decoded, 0, numSize);
-             } else {
-                System.arraycopy(r, 0, decoded, numSize - r.length, r.length);
-             }
+			byte[] decoded = null;
+			int numSize = 32;
+			if (r.length < numSize) {
+				numSize = 28;
+				if (r.length < numSize) {
+					numSize = 20;
+				}
+			}
 
-             if (s.length >= numSize) {
-                 System.arraycopy(s, s.length - numSize, decoded, numSize, numSize);
-             } else {
-                 System.arraycopy(s, 0, decoded, numSize + (numSize - s.length), s.length);
-             }
+			decoded = new byte[numSize * 2];
+			if (r.length >= numSize) {
+				System.arraycopy(r, r.length - numSize, decoded, 0, numSize);
+			} else {
+				System.arraycopy(r, 0, decoded, numSize - r.length, r.length);
+			}
 
-            return decoded;
+			if (s.length >= numSize) {
+				System.arraycopy(s, s.length - numSize, decoded, numSize,
+						numSize);
+			} else {
+				System.arraycopy(s, 0, decoded, numSize + (numSize - s.length),
+						s.length);
+			}
+
+			return decoded;
 		} catch (Exception e) {
 			throw new IOException("Failed to sign data! " + e.getMessage());
 		}

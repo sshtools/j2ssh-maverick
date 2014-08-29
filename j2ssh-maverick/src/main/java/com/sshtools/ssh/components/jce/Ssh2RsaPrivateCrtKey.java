@@ -35,9 +35,10 @@ import com.sshtools.ssh.SshException;
 import com.sshtools.ssh.components.SshRsaPrivateCrtKey;
 
 /**
- * RSA co-efficient private key implementation for SSH2 protocol. 
+ * RSA co-efficient private key implementation for SSH2 protocol.
+ * 
  * @author Lee David Painter
- *
+ * 
  */
 public class Ssh2RsaPrivateCrtKey implements SshRsaPrivateCrtKey {
 
@@ -46,16 +47,18 @@ public class Ssh2RsaPrivateCrtKey implements SshRsaPrivateCrtKey {
 	public Ssh2RsaPrivateCrtKey(RSAPrivateCrtKey prv) {
 		this.prv = prv;
 	}
-	
+
 	public Ssh2RsaPrivateCrtKey(BigInteger modulus, BigInteger publicExponent,
 			BigInteger privateExponent, BigInteger primeP, BigInteger primeQ,
 			BigInteger primeExponentP, BigInteger primeExponentQ,
 			BigInteger crtCoefficient) throws NoSuchAlgorithmException,
 			InvalidKeySpecException {
 
-		KeyFactory keyFactory = JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_RSA) == null ? KeyFactory
-				.getInstance(JCEAlgorithms.JCE_RSA)
-				: KeyFactory.getInstance(JCEAlgorithms.JCE_RSA, JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_RSA));
+		KeyFactory keyFactory = JCEProvider
+				.getProviderForAlgorithm(JCEAlgorithms.JCE_RSA) == null ? KeyFactory
+				.getInstance(JCEAlgorithms.JCE_RSA) : KeyFactory.getInstance(
+				JCEAlgorithms.JCE_RSA,
+				JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_RSA));
 		RSAPrivateCrtKeySpec spec = new RSAPrivateCrtKeySpec(modulus,
 				publicExponent, privateExponent, primeP, primeQ,
 				primeExponentP, primeExponentQ, crtCoefficient);
@@ -65,9 +68,13 @@ public class Ssh2RsaPrivateCrtKey implements SshRsaPrivateCrtKey {
 	public BigInteger doPrivate(BigInteger input) throws SshException {
 		try {
 
-			Cipher cipher = JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_RSANONEPKCS1PADDING) == null ? Cipher
-					.getInstance(JCEAlgorithms.JCE_RSANONEPKCS1PADDING) : Cipher.getInstance(
-							JCEAlgorithms.JCE_RSANONEPKCS1PADDING, JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_RSANONEPKCS1PADDING));
+			Cipher cipher = JCEProvider
+					.getProviderForAlgorithm(JCEAlgorithms.JCE_RSANONEPKCS1PADDING) == null ? Cipher
+					.getInstance(JCEAlgorithms.JCE_RSANONEPKCS1PADDING)
+					: Cipher.getInstance(
+							JCEAlgorithms.JCE_RSANONEPKCS1PADDING,
+							JCEProvider
+									.getProviderForAlgorithm(JCEAlgorithms.JCE_RSANONEPKCS1PADDING));
 
 			cipher.init(Cipher.DECRYPT_MODE, prv, JCEProvider.getSecureRandom());
 
@@ -111,9 +118,14 @@ public class Ssh2RsaPrivateCrtKey implements SshRsaPrivateCrtKey {
 
 	public byte[] sign(byte[] msg) throws IOException {
 		try {
-			Signature l_sig = JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_SHA1WithRSA)== null ? Signature
+			Signature l_sig = JCEProvider
+					.getProviderForAlgorithm(JCEAlgorithms.JCE_SHA1WithRSA) == null ? Signature
 					.getInstance(JCEAlgorithms.JCE_SHA1WithRSA)
-					: Signature.getInstance(JCEAlgorithms.JCE_SHA1WithRSA, JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_SHA1WithRSA));
+					: Signature
+							.getInstance(
+									JCEAlgorithms.JCE_SHA1WithRSA,
+									JCEProvider
+											.getProviderForAlgorithm(JCEAlgorithms.JCE_SHA1WithRSA));
 			l_sig.initSign(prv);
 			l_sig.update(msg);
 

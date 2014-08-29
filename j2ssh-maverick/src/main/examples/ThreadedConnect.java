@@ -34,17 +34,18 @@ import com.sshtools.ssh.SshException;
 import com.sshtools.ssh.SshSession;
 import com.sshtools.ssh.components.SshPublicKey;
 import com.sshtools.ssh2.Ssh2Context;
+
 /**
  * This example demonstrates using multiple threads to access the API.
- *
+ * 
  * @author Lee David Painter
  */
 public class ThreadedConnect {
 
 	public static void main(String[] args) {
 
-
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(
+				System.in));
 
 		try {
 
@@ -53,16 +54,17 @@ public class ThreadedConnect {
 
 			int idx = hostname.indexOf(':');
 			int port = 22;
-			if(idx > -1) {
-				port = Integer.parseInt(hostname.substring(idx+1));
+			if (idx > -1) {
+				port = Integer.parseInt(hostname.substring(idx + 1));
 				hostname = hostname.substring(0, idx);
 
 			}
 
-			System.out.print("Username [Enter for " + System.getProperty("user.name") + "]: ");
+			System.out.print("Username [Enter for "
+					+ System.getProperty("user.name") + "]: ");
 			String username = reader.readLine();
 
-			if(username==null || username.trim().equals(""))
+			if (username == null || username.trim().equals(""))
 				username = System.getProperty("user.name");
 
 			System.out.println("Connecting to " + hostname);
@@ -74,24 +76,27 @@ public class ThreadedConnect {
 
 			// Lets do some host key verification
 			HostKeyVerification hkv = new HostKeyVerification() {
-			public boolean verifyHost(String hostname, SshPublicKey key) {
-				try {
-					System.out.println("The connected host's key (" + key.getAlgorithm() + ") is");
-					System.out.println(key.getFingerprint());
-				} catch (SshException e) {
-					e.printStackTrace();
+				public boolean verifyHost(String hostname, SshPublicKey key) {
+					try {
+						System.out.println("The connected host's key ("
+								+ key.getAlgorithm() + ") is");
+						System.out.println(key.getFingerprint());
+					} catch (SshException e) {
+						e.printStackTrace();
+					}
+					return true;
 				}
-				return true;
-			}
 			};
 
 			con.getContext().setHostKeyVerification(hkv);
-			con.getContext().setPreferredPublicKey(Ssh2Context.PUBLIC_KEY_SSHDSS);
+			con.getContext().setPreferredPublicKey(
+					Ssh2Context.PUBLIC_KEY_SSHDSS);
 
 			/**
 			 * Connect to the host
 			 */
-			final SshClient ssh = con.connect(new SocketTransport(hostname, port), username);
+			final SshClient ssh = con.connect(new SocketTransport(hostname,
+					port), username);
 
 			/**
 			 * Authenticate the user using password authentication
@@ -101,82 +106,82 @@ public class ThreadedConnect {
 			do {
 				System.out.print("Password: ");
 				pwd.setPassword(reader.readLine());
-			}
-			while(ssh.authenticate(pwd)!=SshAuthentication.COMPLETE
+			} while (ssh.authenticate(pwd) != SshAuthentication.COMPLETE
 					&& ssh.isConnected());
-
 
 			/**
 			 * Start a session and do basic IO
 			 */
-			if(ssh.isAuthenticated()) {
+			if (ssh.isAuthenticated()) {
 
-                 // Some old SSH2 servers (Solaris) kill the connection after the first
-                 // session has closed and there are no other sessions started;
-                 // so to avoid this we create the first session and dont ever use it
-                 SshSession s = ssh.openSessionChannel();
-                 s.startShell();
+				// Some old SSH2 servers (Solaris) kill the connection after the
+				// first
+				// session has closed and there are no other sessions started;
+				// so to avoid this we create the first session and dont ever
+				// use it
+				SshSession s = ssh.openSessionChannel();
+				s.startShell();
 
-                 ThreadPool pool = new ThreadPool();
+				ThreadPool pool = new ThreadPool();
 
-                 for(int i=0;i<100;i++) {
+				for (int i = 0; i < 100; i++) {
 
-                   if(!ssh.isConnected())
-                     break;
+					if (!ssh.isConnected())
+						break;
 
+					final int num = i;
 
+					pool.addOperation(new Runnable() {
 
-                   final int num = i;
+						public void run() {
 
-                     pool.addOperation(new Runnable() {
+							System.out.println("Executing session " + num);
+							System.out.println(ssh.getChannelCount()
+									+ " channels currently open");
+							SshSession session = null;
+							try {
 
-                     public void run() {
+								// We use a buffered session so we can spawn
+								// more threads
+								// to test multiple threads access to a single
+								// channel
+								session = ssh.openSessionChannel();
 
-                       System.out.println("Executing session " + num);
-                       System.out.println(ssh.getChannelCount() + " channels currently open");
-                       SshSession session = null;
-                       try {
+								if (session.requestPseudoTerminal("vt100", 80,
+										24, 0, 0)) {
 
-                       // We use a buffered session so we can spawn more threads
-                       // to test multiple threads access to a single channel
-                         session = ssh.openSessionChannel();
+									session.executeCommand("set");
+									InputStream in = session.getInputStream();
 
-                         if(session.requestPseudoTerminal("vt100", 80, 24, 0, 0)) {
+									ByteArrayOutputStream out = new ByteArrayOutputStream();
+									int read;
+									while ((read = in.read()) > -1) {
+										if (read > 0)
+											out.write(read);
+									}
 
-                             session.executeCommand("set");
-                             InputStream in = session.getInputStream();
+									synchronized (System.out) {
+										System.out.write(out.toByteArray());
+									}
+								} else
+									System.out
+											.println("Failed to allocate pseudo terminal");
+							} catch (Throwable t1) {
+								t1.printStackTrace();
+							} finally {
+								if (session != null)
+									session.close();
+								System.out.println("Completed session " + num);
+							}
+						}
 
-                             ByteArrayOutputStream out = new ByteArrayOutputStream();
-                             int read;
-                             while ((read = in.read()) > -1) {
-                                 if (read > 0)
-                                     out.write(read);
-                             }
+					});
 
-                             synchronized (System.out) {
-                                 System.out.write(out.toByteArray());
-                             }
-                         } else
-                             System.out.println("Failed to allocate pseudo terminal");
-                       }
-                       catch(Throwable t1) {
-                         t1.printStackTrace();
-                       }
-                       finally {
-                         if(session!=null)
-                           session.close();
-                           System.out.println("Completed session " + num);
-                       }
-                     }
-
-                   });
-
-                 }
+				}
 
 			}
 
-
-			} catch(Throwable th) {
+		} catch (Throwable th) {
 			th.printStackTrace();
 		}
 	}
@@ -185,60 +190,57 @@ public class ThreadedConnect {
 
 class ThreadPool {
 
-   Thread t[] = new Thread[5];
+	Thread t[] = new Thread[5];
 
-   public synchronized void addOperation(Runnable r) {
+	public synchronized void addOperation(Runnable r) {
 
-     int nextThread;
-     System.out.println("Adding new operation");
-     while((nextThread = getNextThread()) == -1) {
-      try {
-        wait();
-      }
-      catch(InterruptedException ex) {
-      }
-     }
+		int nextThread;
+		System.out.println("Adding new operation");
+		while ((nextThread = getNextThread()) == -1) {
+			try {
+				wait();
+			} catch (InterruptedException ex) {
+			}
+		}
 
-     start(r, nextThread);
+		start(r, nextThread);
 
-   }
+	}
 
-   public int getNextThread() {
-     synchronized(t) {
-       for(int i=0;i<t.length;i++) {
-         if(t[i]==null) {
-           return i;
-         }
-       }
-     }
-     return -1;
+	public int getNextThread() {
+		synchronized (t) {
+			for (int i = 0; i < t.length; i++) {
+				if (t[i] == null) {
+					return i;
+				}
+			}
+		}
+		return -1;
 
-   }
-   public synchronized void release() {
-     notify();
-   }
+	}
 
-   public synchronized void start(final Runnable r, final int i) {
-     t[i] = new Thread() {
-       public void run() {
+	public synchronized void release() {
+		notify();
+	}
 
-        try {
-          r.run();
-        }
-        catch(Exception ex) {
-        }
+	public synchronized void start(final Runnable r, final int i) {
+		t[i] = new Thread() {
+			public void run() {
 
-        synchronized(t) {
-           t[i] = null;
-        }
+				try {
+					r.run();
+				} catch (Exception ex) {
+				}
 
-        release();
-       }
+				synchronized (t) {
+					t[i] = null;
+				}
 
-     };
+				release();
+			}
 
-     t[i].start();
-   }
+		};
+
+		t[i].start();
+	}
 }
-
-

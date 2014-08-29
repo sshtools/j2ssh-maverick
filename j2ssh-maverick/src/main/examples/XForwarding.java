@@ -30,16 +30,18 @@ import com.sshtools.ssh.SshAuthentication;
 import com.sshtools.ssh.SshClient;
 import com.sshtools.ssh.SshConnector;
 import com.sshtools.ssh.SshSession;
+
 /**
  * This example demonstrates how to perform X forwarding.
- *
+ * 
  * @author Lee David Painter
  */
 public class XForwarding {
 
 	public static void main(String[] args) {
 
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(
+				System.in));
 
 		try {
 
@@ -48,16 +50,17 @@ public class XForwarding {
 
 			int idx = hostname.indexOf(':');
 			int port = 22;
-			if(idx > -1) {
-				port = Integer.parseInt(hostname.substring(idx+1));
+			if (idx > -1) {
+				port = Integer.parseInt(hostname.substring(idx + 1));
 				hostname = hostname.substring(0, idx);
 
 			}
 
-			System.out.print("Username [Enter for " + System.getProperty("user.name") + "]: ");
+			System.out.print("Username [Enter for "
+					+ System.getProperty("user.name") + "]: ");
 			String username = reader.readLine();
 
-			if(username==null || username.trim().equals(""))
+			if (username == null || username.trim().equals(""))
 				username = System.getProperty("user.name");
 
 			System.out.println("Connecting to " + hostname);
@@ -67,11 +70,11 @@ public class XForwarding {
 			 */
 			SshConnector con = SshConnector.createInstance();
 
-
 			/**
 			 * Connect to the host
 			 */
-			SshClient ssh = con.connect(new SocketTransport(hostname, port), username);
+			SshClient ssh = con.connect(new SocketTransport(hostname, port),
+					username);
 
 			/**
 			 * Authenticate the user using password authentication
@@ -81,59 +84,54 @@ public class XForwarding {
 			do {
 				System.out.print("Password: ");
 				pwd.setPassword(reader.readLine());
-			}
-			while(ssh.authenticate(pwd)!=SshAuthentication.COMPLETE
+			} while (ssh.authenticate(pwd) != SshAuthentication.COMPLETE
 					&& ssh.isConnected());
 
-               // Configure X Forwarding - this must be done before any sessions are opened
-               ForwardingClient fwd = new ForwardingClient(ssh);
-               fwd.allowX11Forwarding("localhost:0");
+			// Configure X Forwarding - this must be done before any sessions
+			// are opened
+			ForwardingClient fwd = new ForwardingClient(ssh);
+			fwd.allowX11Forwarding("localhost:0");
 
 			/**
 			 * Start a session and do basic IO
 			 */
-			if(ssh.isAuthenticated()) {
+			if (ssh.isAuthenticated()) {
 
 				final SshSession session = ssh.openSessionChannel();
-				session.requestPseudoTerminal("vt100",80,24,0,0);
+				session.requestPseudoTerminal("vt100", 80, 24, 0, 0);
 				session.startShell();
-
 
 				final InputStream in = session.getInputStream();
 				Thread t = new Thread(new Runnable() {
 					public void run() {
 						try {
 							int read;
-							while((read = in.read()) > -1) {
-								if(read > 0)
-									System.out.print((char)read);
+							while ((read = in.read()) > -1) {
+								if (read > 0)
+									System.out.print((char) read);
 							}
-						} catch(Throwable t1) {
+						} catch (Throwable t1) {
 							t1.printStackTrace();
 						} finally {
-						//	System.exit(0);
-                              session.close();
+							// System.exit(0);
+							session.close();
 						}
 					}
 
 				});
 				t.start();
 				int read;
-				while((read = System.in.read()) > -1) {
+				while ((read = System.in.read()) > -1) {
 					session.getOutputStream().write(read);
 				}
 
-                    session.close();
-				//System.exit(0);
+				session.close();
+				// System.exit(0);
 			}
 
-
-			} catch(Throwable th) {
+		} catch (Throwable th) {
 			th.printStackTrace();
 		}
 	}
 
 }
-
-
-

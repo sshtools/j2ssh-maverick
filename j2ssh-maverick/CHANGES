@@ -8,6 +8,7 @@ Features
     o New open source branch converted to maven.
     o Converted source to 1.5 source compatibility. 
     o Renamed all base packages to com.sshtools.
+    o Re-factored logging interface, removed used of event service and replaced with custom interface.
     
 Bug Fixes
 	o Automatically attempt to add BouncyCastle JCE provider if found in class path. If not installed, there may no large prime support for some Diffie Hellman algorithms.

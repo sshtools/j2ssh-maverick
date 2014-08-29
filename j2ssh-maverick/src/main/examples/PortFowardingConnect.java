@@ -34,16 +34,18 @@ import com.sshtools.ssh.SshException;
 import com.sshtools.ssh.SshSession;
 import com.sshtools.ssh.components.SshPublicKey;
 import com.sshtools.ssh2.Ssh2Context;
+
 /**
  * This example demonstrates how to perform port forwarding.
- *
+ * 
  * @author Lee David Painter
  */
 public class PortFowardingConnect {
 
 	public static void main(String[] args) {
 
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(
+				System.in));
 
 		try {
 
@@ -52,16 +54,17 @@ public class PortFowardingConnect {
 
 			int idx = hostname.indexOf(':');
 			int port = 22;
-			if(idx > -1) {
-				port = Integer.parseInt(hostname.substring(idx+1));
+			if (idx > -1) {
+				port = Integer.parseInt(hostname.substring(idx + 1));
 				hostname = hostname.substring(0, idx);
 
 			}
 
-			System.out.print("Username [Enter for " + System.getProperty("user.name") + "]: ");
+			System.out.print("Username [Enter for "
+					+ System.getProperty("user.name") + "]: ");
 			String username = reader.readLine();
 
-			if(username==null || username.trim().equals(""))
+			if (username == null || username.trim().equals(""))
 				username = System.getProperty("user.name");
 
 			System.out.println("Connecting to " + hostname);
@@ -73,24 +76,27 @@ public class PortFowardingConnect {
 
 			// Lets do some host key verification
 			HostKeyVerification hkv = new HostKeyVerification() {
-			public boolean verifyHost(String hostname, SshPublicKey key) {
-				try {
-					System.out.println("The connected host's key (" + key.getAlgorithm() + ") is");
-					System.out.println(key.getFingerprint());
-				} catch (SshException e) {
+				public boolean verifyHost(String hostname, SshPublicKey key) {
+					try {
+						System.out.println("The connected host's key ("
+								+ key.getAlgorithm() + ") is");
+						System.out.println(key.getFingerprint());
+					} catch (SshException e) {
+					}
+					return true;
 				}
-				return true;
-			}
 			};
 
 			con.getContext().setHostKeyVerification(hkv);
 
-			con.getContext().setPreferredPublicKey(Ssh2Context.PUBLIC_KEY_SSHDSS);
+			con.getContext().setPreferredPublicKey(
+					Ssh2Context.PUBLIC_KEY_SSHDSS);
 
 			/**
 			 * Connect to the host
 			 */
-			SshClient ssh = con.connect(new SocketTransport(hostname, port), username, true);
+			SshClient ssh = con.connect(new SocketTransport(hostname, port),
+					username, true);
 
 			/**
 			 * Authenticate the user using password authentication
@@ -100,30 +106,29 @@ public class PortFowardingConnect {
 			do {
 				System.out.print("Password: ");
 				pwd.setPassword(reader.readLine());
-			}
-			while(ssh.authenticate(pwd)!=SshAuthentication.COMPLETE
+			} while (ssh.authenticate(pwd) != SshAuthentication.COMPLETE
 					&& ssh.isConnected());
 
 			/**
 			 * Start a session and do basic IO
 			 */
-			if(ssh.isAuthenticated()) {
+			if (ssh.isAuthenticated()) {
 
 				final ForwardingClient fwd = new ForwardingClient(ssh);
 
-				if(!fwd.requestRemoteForwarding("127.0.0.1", 8080,
+				if (!fwd.requestRemoteForwarding("127.0.0.1", 8080,
 						"127.0.0.1", 80)) {
 					System.out.println("Forwarding request failed!");
 				}
 
 				/**
-				 * Start the users session. It
-				 * also acts as a thread to service incoming channel requests
-				 * for the port forwarding for both versions. Since we have a single
-				 * threaded API we have to do this to send a timely response
+				 * Start the users session. It also acts as a thread to service
+				 * incoming channel requests for the port forwarding for both
+				 * versions. Since we have a single threaded API we have to do
+				 * this to send a timely response
 				 */
 				final SshSession session = ssh.openSessionChannel();
-				session.requestPseudoTerminal("vt100",80,24,0,0);
+				session.requestPseudoTerminal("vt100", 80, 24, 0, 0);
 				session.startShell();
 
 				/**
@@ -136,11 +141,11 @@ public class PortFowardingConnect {
 					public void run() {
 						try {
 							int read;
-							while((read = in.read()) > -1) {
-								if(read > 0)
-									System.out.print((char)read);
+							while ((read = in.read()) > -1) {
+								if (read > 0)
+									System.out.print((char) read);
 							}
-						} catch(Throwable t4) {
+						} catch (Throwable t4) {
 							t4.printStackTrace();
 						} finally {
 							System.exit(0);
@@ -151,40 +156,49 @@ public class PortFowardingConnect {
 				t.start();
 
 				/**
-				 * Were also going to have a monitor thread that displays the active forwardings
-				 * and tunnels every 10 seconds
+				 * Were also going to have a monitor thread that displays the
+				 * active forwardings and tunnels every 10 seconds
 				 */
 				Thread m = new Thread() {
 					public void run() {
-						while(!session.isClosed()) {
+						while (!session.isClosed()) {
 							try {
 								Thread.sleep(10000);
-							} catch(Throwable t3) { }
+							} catch (Throwable t3) {
+							}
 
 							try {
-							String[] listeners = fwd.getLocalForwardings();
-							for(int i=0;i<listeners.length;i++) {
-								System.out.print("Local forwarding " + listeners[i]);
-								try {
-									ForwardingClient.ActiveTunnel[] tun1 = fwd.getLocalForwardingTunnels(listeners[i]);
-									System.out.println(" has " + String.valueOf(tun1.length) + " active tunnels");
-								} catch(Throwable t2) {
-									t2.printStackTrace();
+								String[] listeners = fwd.getLocalForwardings();
+								for (int i = 0; i < listeners.length; i++) {
+									System.out.print("Local forwarding "
+											+ listeners[i]);
+									try {
+										ForwardingClient.ActiveTunnel[] tun1 = fwd
+												.getLocalForwardingTunnels(listeners[i]);
+										System.out.println(" has "
+												+ String.valueOf(tun1.length)
+												+ " active tunnels");
+									} catch (Throwable t2) {
+										t2.printStackTrace();
+									}
 								}
-							}
 
-							listeners = fwd.getRemoteForwardings();
-							for(int i=0;i<listeners.length;i++) {
-								System.out.print("Remote forwarding " + listeners[i]);
-								try {
-									ForwardingClient.ActiveTunnel[] tun2 = fwd.getRemoteForwardingTunnels(listeners[i]);
-									System.out.println(" has " + String.valueOf(tun2.length) + " active tunnels");
-								} catch(Throwable t5) {
-								t5.printStackTrace();
+								listeners = fwd.getRemoteForwardings();
+								for (int i = 0; i < listeners.length; i++) {
+									System.out.print("Remote forwarding "
+											+ listeners[i]);
+									try {
+										ForwardingClient.ActiveTunnel[] tun2 = fwd
+												.getRemoteForwardingTunnels(listeners[i]);
+										System.out.println(" has "
+												+ String.valueOf(tun2.length)
+												+ " active tunnels");
+									} catch (Throwable t5) {
+										t5.printStackTrace();
+									}
 								}
-							}
 
-							} catch(Throwable t1) {
+							} catch (Throwable t1) {
 								t1.printStackTrace();
 							}
 
@@ -193,21 +207,16 @@ public class PortFowardingConnect {
 				};
 				m.start();
 				int read;
-				while((read = System.in.read()) > -1) {
+				while ((read = System.in.read()) > -1) {
 					session.getOutputStream().write(read);
 				}
 
 				System.exit(0);
 			}
 
-
-			} catch(Throwable th) {
+		} catch (Throwable th) {
 			th.printStackTrace();
 		}
 	}
 
 }
-
-
-
-

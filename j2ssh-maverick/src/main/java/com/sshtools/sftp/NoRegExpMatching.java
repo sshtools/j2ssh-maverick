@@ -35,22 +35,24 @@ import com.sshtools.ssh.SshException;
  */
 public class NoRegExpMatching implements RegularExpressionMatching {
 
-    /**
-     * opens and returns the requested filename string
-     * 
-     * @throws SftpStatusException
-     */
-    public String[] matchFileNamesWithPattern(File[] files, String fileNameRegExp) throws SshException, SftpStatusException {
-        String[] thefile = new String[1];
-        thefile[0] = files[0].getName();
-        return thefile;
-    }
+	/**
+	 * opens and returns the requested filename string
+	 * 
+	 * @throws SftpStatusException
+	 */
+	public String[] matchFileNamesWithPattern(File[] files,
+			String fileNameRegExp) throws SshException, SftpStatusException {
+		String[] thefile = new String[1];
+		thefile[0] = files[0].getName();
+		return thefile;
+	}
 
-    /**
-     * returns files
-     */
-    public SftpFile[] matchFilesWithPattern(SftpFile[] files, String fileNameRegExp) throws SftpStatusException, SshException {
-        return files;
-    }
+	/**
+	 * returns files
+	 */
+	public SftpFile[] matchFilesWithPattern(SftpFile[] files,
+			String fileNameRegExp) throws SftpStatusException, SshException {
+		return files;
+	}
 
 }

@@ -36,34 +36,37 @@ import com.sshtools.ssh.SshException;
 import com.sshtools.ssh.SshSession;
 import com.sshtools.ssh.components.SshKeyPair;
 import com.sshtools.ssh.components.SshPublicKey;
+
 /**
  * This example demonstrates using public key authentication.
- *
+ * 
  * @author Lee David Painter
  */
 public class PublicKeyConnect {
 
 	public static void main(String[] args) {
 
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(
+				System.in));
 
 		try {
-		
+
 			System.out.print("Hostname: ");
 			String hostname = reader.readLine();
 
 			int idx = hostname.indexOf(':');
 			int port = 22;
-			if(idx > -1) {
-				port = Integer.parseInt(hostname.substring(idx+1));
+			if (idx > -1) {
+				port = Integer.parseInt(hostname.substring(idx + 1));
 				hostname = hostname.substring(0, idx);
 
 			}
 
-			System.out.print("Username [Enter for " + System.getProperty("user.name") + "]: ");
+			System.out.print("Username [Enter for "
+					+ System.getProperty("user.name") + "]: ");
 			String username = reader.readLine();
 
-			if(username==null || username.trim().equals(""))
+			if (username == null || username.trim().equals(""))
 				username = System.getProperty("user.name");
 
 			System.out.println("Connecting to " + hostname);
@@ -73,17 +76,18 @@ public class PublicKeyConnect {
 			 */
 			SshConnector con = SshConnector.createInstance();
 
-                        //con.setSupportedVersions(1);
+			// con.setSupportedVersions(1);
 			// Lets do some host key verification
 			HostKeyVerification hkv = new HostKeyVerification() {
-			public boolean verifyHost(String hostname, SshPublicKey key) {
-				try {
-					System.out.println("The connected host's key (" + key.getAlgorithm() + ") is");
-					System.out.println(key.getFingerprint());
-				} catch (SshException e) {
+				public boolean verifyHost(String hostname, SshPublicKey key) {
+					try {
+						System.out.println("The connected host's key ("
+								+ key.getAlgorithm() + ") is");
+						System.out.println(key.getFingerprint());
+					} catch (SshException e) {
+					}
+					return true;
 				}
-				return true;
-			}
 			};
 
 			con.getContext().setHostKeyVerification(hkv);
@@ -91,7 +95,8 @@ public class PublicKeyConnect {
 			/**
 			 * Connect to the host
 			 */
-			SshClient ssh = con.connect(new SocketTransport(hostname, port), username);
+			SshClient ssh = con.connect(new SocketTransport(hostname, port),
+					username);
 
 			/**
 			 * Authenticate the user using password authentication
@@ -100,41 +105,40 @@ public class PublicKeyConnect {
 
 			do {
 				System.out.print("Private key file: ");
-				SshPrivateKeyFile pkfile = SshPrivateKeyFileFactory.parse(new FileInputStream(reader.readLine()));
+				SshPrivateKeyFile pkfile = SshPrivateKeyFileFactory
+						.parse(new FileInputStream(reader.readLine()));
 
 				SshKeyPair pair;
-				if(pkfile.isPassphraseProtected()) {
+				if (pkfile.isPassphraseProtected()) {
 					System.out.print("Passphrase: ");
-                                        pair = pkfile.toKeyPair(reader.readLine());
+					pair = pkfile.toKeyPair(reader.readLine());
 				} else
 					pair = pkfile.toKeyPair(null);
 
 				pk.setPrivateKey(pair.getPrivateKey());
 				pk.setPublicKey(pair.getPublicKey());
-			}
-			while(ssh.authenticate(pk)!=SshAuthentication.COMPLETE
+			} while (ssh.authenticate(pk) != SshAuthentication.COMPLETE
 					&& ssh.isConnected());
 
 			/**
 			 * Start a session and do basic IO
 			 */
-			if(ssh.isAuthenticated()) {
+			if (ssh.isAuthenticated()) {
 
 				SshSession session = ssh.openSessionChannel();
-				session.requestPseudoTerminal("vt100",80,24,0,0);
+				session.requestPseudoTerminal("vt100", 80, 24, 0, 0);
 				session.startShell();
-
 
 				final InputStream in = session.getInputStream();
 				Thread t = new Thread(new Runnable() {
 					public void run() {
 						try {
 							int read;
-							while((read = in.read()) > -1) {
-								if(read > 0)
-									System.out.print((char)read);
+							while ((read = in.read()) > -1) {
+								if (read > 0)
+									System.out.print((char) read);
 							}
-						} catch(Throwable t1) {
+						} catch (Throwable t1) {
 							t1.printStackTrace();
 						} finally {
 							System.exit(0);
@@ -144,20 +148,16 @@ public class PublicKeyConnect {
 				});
 				t.start();
 				int read;
-				while((read = System.in.read()) > -1) {
+				while ((read = System.in.read()) > -1) {
 					session.getOutputStream().write(read);
 				}
 
 				System.exit(0);
 			}
 
-
-			} catch(Throwable th) {
+		} catch (Throwable th) {
 			th.printStackTrace();
 		}
 	}
 
 }
-
-
-

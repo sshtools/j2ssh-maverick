@@ -62,9 +62,11 @@ public class Ssh2RsaPublicKey implements SshRsaPublicKey {
 
 	public Ssh2RsaPublicKey(BigInteger modulus, BigInteger publicExponent)
 			throws NoSuchAlgorithmException, InvalidKeySpecException {
-		KeyFactory keyFactory = JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_RSA) == null ? 
-				KeyFactory.getInstance(JCEAlgorithms.JCE_RSA)
-				: KeyFactory.getInstance(JCEAlgorithms.JCE_RSA, JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_RSA));
+		KeyFactory keyFactory = JCEProvider
+				.getProviderForAlgorithm(JCEAlgorithms.JCE_RSA) == null ? KeyFactory
+				.getInstance(JCEAlgorithms.JCE_RSA) : KeyFactory.getInstance(
+				JCEAlgorithms.JCE_RSA,
+				JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_RSA));
 		RSAPublicKeySpec spec = new RSAPublicKeySpec(modulus, publicExponent);
 		pubKey = (RSAPublicKey) keyFactory.generatePublic(spec);
 	}
@@ -77,7 +79,7 @@ public class Ssh2RsaPublicKey implements SshRsaPublicKey {
 	public byte[] getEncoded() throws SshException {
 		ByteArrayWriter baw = new ByteArrayWriter();
 		try {
-			
+
 			baw.writeString(getAlgorithm());
 			baw.writeBigInteger(pubKey.getPublicExponent());
 			baw.writeBigInteger(pubKey.getModulus());
@@ -110,7 +112,7 @@ public class Ssh2RsaPublicKey implements SshRsaPublicKey {
 	public void init(byte[] blob, int start, int len) throws SshException {
 
 		ByteArrayReader bar = new ByteArrayReader(blob, start, len);
-		
+
 		try {
 			// this.hostKey = hostKey;
 			RSAPublicKeySpec rsaKey;
@@ -128,9 +130,14 @@ public class Ssh2RsaPublicKey implements SshRsaPublicKey {
 			rsaKey = new RSAPublicKeySpec(n, e);
 
 			try {
-				KeyFactory kf = JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_RSA) == null ? 
-						KeyFactory.getInstance(JCEAlgorithms.JCE_RSA)
-						: KeyFactory.getInstance(JCEAlgorithms.JCE_RSA, JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_RSA));
+				KeyFactory kf = JCEProvider
+						.getProviderForAlgorithm(JCEAlgorithms.JCE_RSA) == null ? KeyFactory
+						.getInstance(JCEAlgorithms.JCE_RSA)
+						: KeyFactory
+								.getInstance(
+										JCEAlgorithms.JCE_RSA,
+										JCEProvider
+												.getProviderForAlgorithm(JCEAlgorithms.JCE_RSA));
 				pubKey = (RSAPublicKey) kf.generatePublic(rsaKey);
 
 			} catch (Exception ex) {
@@ -168,14 +175,19 @@ public class Ssh2RsaPublicKey implements SshRsaPublicKey {
 
 			Signature s;
 
-			s = JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_SHA1WithRSA) == null ? 
-					Signature.getInstance(JCEAlgorithms.JCE_SHA1WithRSA) : 
-					Signature.getInstance(JCEAlgorithms.JCE_SHA1WithRSA, JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_SHA1WithRSA));
+			s = JCEProvider
+					.getProviderForAlgorithm(JCEAlgorithms.JCE_SHA1WithRSA) == null ? Signature
+					.getInstance(JCEAlgorithms.JCE_SHA1WithRSA)
+					: Signature
+							.getInstance(
+									JCEAlgorithms.JCE_SHA1WithRSA,
+									JCEProvider
+											.getProviderForAlgorithm(JCEAlgorithms.JCE_SHA1WithRSA));
 			s.initVerify(pubKey);
 			s.update(data);
 
 			return s.verify(signature);
-			
+
 		} catch (Exception ex) {
 			throw new SshException(SshException.JCE_ERROR, ex);
 		} finally {
@@ -190,7 +202,8 @@ public class Ssh2RsaPublicKey implements SshRsaPublicKey {
 	public boolean equals(Object obj) {
 		if (obj instanceof SshRsaPublicKey) {
 			try {
-				return (((SshPublicKey) obj).getFingerprint().equals(getFingerprint()));
+				return (((SshPublicKey) obj).getFingerprint()
+						.equals(getFingerprint()));
 			} catch (SshException ex) {
 			}
 		}
@@ -209,16 +222,24 @@ public class Ssh2RsaPublicKey implements SshRsaPublicKey {
 	public BigInteger doPublic(BigInteger input) throws SshException {
 		try {
 
-			Cipher cipher = JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_RSANONEPKCS1PADDING) == null ? Cipher
-					.getInstance(JCEAlgorithms.JCE_RSANONEPKCS1PADDING) : Cipher.getInstance(
-					JCEAlgorithms.JCE_RSANONEPKCS1PADDING, JCEProvider.getProviderForAlgorithm(JCEAlgorithms.JCE_RSANONEPKCS1PADDING));
-			cipher.init(Cipher.ENCRYPT_MODE, pubKey, JCEProvider.getSecureRandom());
+			Cipher cipher = JCEProvider
+					.getProviderForAlgorithm(JCEAlgorithms.JCE_RSANONEPKCS1PADDING) == null ? Cipher
+					.getInstance(JCEAlgorithms.JCE_RSANONEPKCS1PADDING)
+					: Cipher.getInstance(
+							JCEAlgorithms.JCE_RSANONEPKCS1PADDING,
+							JCEProvider
+									.getProviderForAlgorithm(JCEAlgorithms.JCE_RSANONEPKCS1PADDING));
+			cipher.init(Cipher.ENCRYPT_MODE, pubKey,
+					JCEProvider.getSecureRandom());
 			byte[] tmp = input.toByteArray();
-			return new BigInteger(cipher.doFinal(tmp, tmp[0]==0 ? 1 : 0, tmp[0] == 0 ? tmp.length-1 : tmp.length));
+			return new BigInteger(cipher.doFinal(tmp, tmp[0] == 0 ? 1 : 0,
+					tmp[0] == 0 ? tmp.length - 1 : tmp.length));
 
 		} catch (Throwable e) {
-			if(e.getMessage().indexOf(JCEAlgorithms.JCE_RSANONEPKCS1PADDING) > -1)
-				throw new SshException("JCE provider requires BouncyCastle provider for RSA/NONE/PKCS1Padding component. Add bcprov.jar to your classpath or configure an alternative provider for this algorithm", SshException.INTERNAL_ERROR);
+			if (e.getMessage().indexOf(JCEAlgorithms.JCE_RSANONEPKCS1PADDING) > -1)
+				throw new SshException(
+						"JCE provider requires BouncyCastle provider for RSA/NONE/PKCS1Padding component. Add bcprov.jar to your classpath or configure an alternative provider for this algorithm",
+						SshException.INTERNAL_ERROR);
 			throw new SshException(e);
 		}
 	}

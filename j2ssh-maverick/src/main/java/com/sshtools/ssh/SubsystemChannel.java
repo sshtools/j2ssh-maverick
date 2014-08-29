@@ -28,233 +28,236 @@ import java.io.IOException;
 import java.util.Vector;
 
 /**
- * <p>This class provides useful methods for implementing an SSH2 subsystem. Subsystems
- * typically send messages in the following format.
- * <blockquote><pre>
+ * <p>
+ * This class provides useful methods for implementing an SSH2 subsystem.
+ * Subsystems typically send messages in the following format. <blockquote>
+ * 
+ * <pre>
  * UINT           length
  * byte           type
  * byte[length-1] payload
- * </pre></blockquote>
- * Messages sent using the methods of this class will have the UINT length automatically
- * added and messages received will be unwrapped with just the type and payload being
- * returned. Although subsystems were defined within the SSH2 connection
- * protocol this class takes a single <a href="SshChannel.html">SshChannel</a>
- * as an argument to its constructor which enables subsystems to run over both
- * SSH1 and SSH2 channels.</p>
- *
+ * </pre>
+ * 
+ * </blockquote> Messages sent using the methods of this class will have the
+ * UINT length automatically added and messages received will be unwrapped with
+ * just the type and payload being returned. Although subsystems were defined
+ * within the SSH2 connection protocol this class takes a single <a
+ * href="SshChannel.html">SshChannel</a> as an argument to its constructor which
+ * enables subsystems to run over both SSH1 and SSH2 channels.
+ * </p>
+ * 
  * @author Lee David Painter
  */
 public class SubsystemChannel {
 
-  DataInputStream in;
-  DataOutputStream out;
-  Vector<Packet> packets = new Vector<Packet>();
-  int maximumPacketSize = Integer.parseInt(System.getProperty("maverick.sftp.maxPacketSize", "1024000"));
-  
-  protected SshChannel channel;
+	DataInputStream in;
+	DataOutputStream out;
+	Vector<Packet> packets = new Vector<Packet>();
+	int maximumPacketSize = Integer.parseInt(System.getProperty(
+			"maverick.sftp.maxPacketSize", "1024000"));
 
-  /**
-   * Why??? Well using synchronized(in) { } works for all
-   * JDK's except 1.2.2 so we need some form of workaround.
-   *
-   * Synchronized methods seem to work a treat.
-   */
-  Reader reader = new Reader();
-  Writer writer = new Writer();
+	protected SshChannel channel;
 
-  /**
-   * Create a new subsystem channel.
-   *
-   * @param channel
-   * @throws SshException
-   */
-  public SubsystemChannel(SshChannel channel) throws SshException {
+	/**
+	 * Why??? Well using synchronized(in) { } works for all JDK's except 1.2.2
+	 * so we need some form of workaround.
+	 * 
+	 * Synchronized methods seem to work a treat.
+	 */
+	Reader reader = new Reader();
+	Writer writer = new Writer();
 
-    this.channel = channel;
-    
-    try {
-      in = new DataInputStream(channel.getInputStream());
-      out = new DataOutputStream(channel.getOutputStream());
-    }
-    catch(SshIOException ex) {
-      throw ex.getRealException();
-    }
-    catch(IOException ex) {
-      throw new SshException(
-         ex.getMessage(),
-         SshException.CHANNEL_FAILURE);
-    }
+	/**
+	 * Create a new subsystem channel.
+	 * 
+	 * @param channel
+	 * @throws SshException
+	 */
+	public SubsystemChannel(SshChannel channel) throws SshException {
 
-  }
+		this.channel = channel;
 
-  /**
-   * Is the subsystem closed?
-   * @return boolean
-   */
-  public boolean isClosed() {
-    return channel.isClosed();
-  }
+		try {
+			in = new DataInputStream(channel.getInputStream());
+			out = new DataOutputStream(channel.getOutputStream());
+		} catch (SshIOException ex) {
+			throw ex.getRealException();
+		} catch (IOException ex) {
+			throw new SshException(ex.getMessage(),
+					SshException.CHANNEL_FAILURE);
+		}
 
-  /**
-   * Close the subsystem
-   *
-   * @throws IOException
-   */
-  public void close() throws IOException {
-	packets.removeAllElements();
-    channel.close();
-  }
+	}
 
-  /**
-   * Read a subsystem message from the channel inputstream. Each
-   * @return byte[]
-   * @throws SshException
-   */
-  public byte[] nextMessage() throws SshException {
-    return reader.readMessage(in);
-  }
+	/**
+	 * Is the subsystem closed?
+	 * 
+	 * @return boolean
+	 */
+	public boolean isClosed() {
+		return channel.isClosed();
+	}
 
-  /**
-   * Write a subsystem message to the channel outputstream.
-   *
-   * @param msg
-   * @throws SshException
-   */
-  protected void sendMessage(Packet msg) throws SshException {
-    writer.sendMessage(msg);
-  }
+	/**
+	 * Close the subsystem
+	 * 
+	 * @throws IOException
+	 */
+	public void close() throws IOException {
+		packets.removeAllElements();
+		channel.close();
+	}
 
-  /**
-   * Send a byte array as a message.
-   *
-   * @param msg
-   * @throws SshException
-   * @deprecated This has changed internally to use a {@link com.sshtools.ssh.Packet} and it
-   * is recommended that all implementations change to use {@link com.sshtools.ssh.Packet}'s
-   * as they provide a more efficent way of sending data.
-   */
-  protected void sendMessage(byte[] msg) throws SshException {
-    try {
-      Packet pkt = createPacket();
-      pkt.write(msg);
-      sendMessage(pkt);
-    }
-    catch(IOException ex) {
-      throw new SshException(SshException.UNEXPECTED_TERMINATION, ex);
-    }
-  }
+	/**
+	 * Read a subsystem message from the channel inputstream. Each
+	 * 
+	 * @return byte[]
+	 * @throws SshException
+	 */
+	public byte[] nextMessage() throws SshException {
+		return reader.readMessage(in);
+	}
 
-  /**
-   * Get a packet from the available pool or create if non available
-   * @return Packet
-   * @throws IOException
-   */
-  protected Packet createPacket() throws IOException {
-    synchronized(packets) {
-      if(packets.size()==0)
-        return new Packet();
-	Packet p = (Packet) packets.elementAt(0);
-	packets.removeElementAt(0);
-	return p;
-    }
-  }
+	/**
+	 * Write a subsystem message to the channel outputstream.
+	 * 
+	 * @param msg
+	 * @throws SshException
+	 */
+	protected void sendMessage(Packet msg) throws SshException {
+		writer.sendMessage(msg);
+	}
 
+	/**
+	 * Send a byte array as a message.
+	 * 
+	 * @param msg
+	 * @throws SshException
+	 * @deprecated This has changed internally to use a
+	 *             {@link com.sshtools.ssh.Packet} and it is recommended that
+	 *             all implementations change to use
+	 *             {@link com.sshtools.ssh.Packet}'s as they provide a more
+	 *             efficent way of sending data.
+	 */
+	protected void sendMessage(byte[] msg) throws SshException {
+		try {
+			Packet pkt = createPacket();
+			pkt.write(msg);
+			sendMessage(pkt);
+		} catch (IOException ex) {
+			throw new SshException(SshException.UNEXPECTED_TERMINATION, ex);
+		}
+	}
 
-  class Writer {
-	  synchronized void sendMessage(Packet msg) throws SshException {
-		  try {
-			  msg.finish();
-			  out.write(msg.array(), 0, msg.size());
-		  }
-		  catch(SshIOException ex) {
-			  throw ex.getRealException();
-		  }
-		  catch(EOFException ex) {
-			  try {
-				  close();
-			  }
-			  catch(SshIOException ex1) {
-				  throw ex1.getRealException();
-			  }
-			  catch(IOException ex1) {
-				  throw new SshException(ex1.getMessage(),SshException.CHANNEL_FAILURE);
-			  }
+	/**
+	 * Get a packet from the available pool or create if non available
+	 * 
+	 * @return Packet
+	 * @throws IOException
+	 */
+	protected Packet createPacket() throws IOException {
+		synchronized (packets) {
+			if (packets.size() == 0)
+				return new Packet();
+			Packet p = (Packet) packets.elementAt(0);
+			packets.removeElementAt(0);
+			return p;
+		}
+	}
 
-			  throw new SshException("The channel unexpectedly terminated",SshException.CHANNEL_FAILURE);
-		  }
-		  catch(IOException ex) {
-			  try {
-				  close();
-			  }
-			  catch(SshIOException ex2) {
-				  throw ex2.getRealException();
-			  }
-			  catch(IOException ex1) {
-				  throw new SshException(ex1.getMessage(),SshException.CHANNEL_FAILURE);
-			  }
+	class Writer {
+		synchronized void sendMessage(Packet msg) throws SshException {
+			try {
+				msg.finish();
+				out.write(msg.array(), 0, msg.size());
+			} catch (SshIOException ex) {
+				throw ex.getRealException();
+			} catch (EOFException ex) {
+				try {
+					close();
+				} catch (SshIOException ex1) {
+					throw ex1.getRealException();
+				} catch (IOException ex1) {
+					throw new SshException(ex1.getMessage(),
+							SshException.CHANNEL_FAILURE);
+				}
 
-			  throw new SshException("Unknown channel IO failure: " + ex.getMessage(),SshException.CHANNEL_FAILURE);
-		  } finally {
-			  msg.reset();
-			  synchronized(packets) {
-				  packets.addElement(msg);
-			  }
-		  }
-	  }
-  }
+				throw new SshException("The channel unexpectedly terminated",
+						SshException.CHANNEL_FAILURE);
+			} catch (IOException ex) {
+				try {
+					close();
+				} catch (SshIOException ex2) {
+					throw ex2.getRealException();
+				} catch (IOException ex1) {
+					throw new SshException(ex1.getMessage(),
+							SshException.CHANNEL_FAILURE);
+				}
 
-  class Reader {
-      synchronized byte[] readMessage(DataInputStream in) throws SshException {
-          
-    	  int len = -1; 
-    	  try {
-              len = in.readInt();
+				throw new SshException("Unknown channel IO failure: "
+						+ ex.getMessage(), SshException.CHANNEL_FAILURE);
+			} finally {
+				msg.reset();
+				synchronized (packets) {
+					packets.addElement(msg);
+				}
+			}
+		}
+	}
 
-              if(len < 0)
-                  throw new SshException("Negative message length in SFTP protocol.",
-                                         SshException.PROTOCOL_VIOLATION);
+	class Reader {
+		synchronized byte[] readMessage(DataInputStream in) throws SshException {
 
-              if(len > maximumPacketSize)
-                  throw new SshException("Invalid message length in SFTP protocol [" + len + "]",
-                                         SshException.PROTOCOL_VIOLATION);
+			int len = -1;
+			try {
+				len = in.readInt();
 
-              byte[] msg = new byte[len];
-              in.readFully(msg);
+				if (len < 0)
+					throw new SshException(
+							"Negative message length in SFTP protocol.",
+							SshException.PROTOCOL_VIOLATION);
 
-              return msg;
-          } catch(OutOfMemoryError ex) {
-              throw new SshException("Invalid message length in SFTP protocol [" + len + "]",
-                                         SshException.PROTOCOL_VIOLATION);
-          } catch (EOFException ex) {
-              try {
-                  close();
-              } catch (SshIOException ex1) {
-                  throw ex1.getRealException();
-              } catch (IOException ex1) {
-                  throw new SshException(
-                          ex1.getMessage(),
-                          SshException.CHANNEL_FAILURE);
-              }
+				if (len > maximumPacketSize)
+					throw new SshException(
+							"Invalid message length in SFTP protocol [" + len
+									+ "]", SshException.PROTOCOL_VIOLATION);
 
-              throw new SshException("The channel unexpectedly terminated",
-                                     SshException.CHANNEL_FAILURE);
-          } catch (IOException ex) {
+				byte[] msg = new byte[len];
+				in.readFully(msg);
 
-              if(ex instanceof SshIOException)
-                  throw ((SshIOException)ex).getRealException();
+				return msg;
+			} catch (OutOfMemoryError ex) {
+				throw new SshException(
+						"Invalid message length in SFTP protocol [" + len + "]",
+						SshException.PROTOCOL_VIOLATION);
+			} catch (EOFException ex) {
+				try {
+					close();
+				} catch (SshIOException ex1) {
+					throw ex1.getRealException();
+				} catch (IOException ex1) {
+					throw new SshException(ex1.getMessage(),
+							SshException.CHANNEL_FAILURE);
+				}
 
-              try {
-                  close();
-              } catch (SshIOException ex2) {
-                  throw ex2.getRealException();
-              } catch (IOException ex1) {
-                  throw new SshException(
-                          ex1.getMessage(),
-                          SshException.CHANNEL_FAILURE);
-              }
+				throw new SshException("The channel unexpectedly terminated",
+						SshException.CHANNEL_FAILURE);
+			} catch (IOException ex) {
 
-              throw new SshException(SshException.CHANNEL_FAILURE, ex);
-          }
-      }
-  }
+				if (ex instanceof SshIOException)
+					throw ((SshIOException) ex).getRealException();
+
+				try {
+					close();
+				} catch (SshIOException ex2) {
+					throw ex2.getRealException();
+				} catch (IOException ex1) {
+					throw new SshException(ex1.getMessage(),
+							SshException.CHANNEL_FAILURE);
+				}
+
+				throw new SshException(SshException.CHANNEL_FAILURE, ex);
+			}
+		}
+	}
 }

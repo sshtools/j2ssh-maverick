@@ -27,28 +27,30 @@ import com.sshtools.ssh.SshException;
 import com.sshtools.ssh.components.SshSecureRandomGenerator;
 
 /**
- * Secure random number generator implementation for JCE provider. 
+ * Secure random number generator implementation for JCE provider.
  */
 public class SecureRND implements SshSecureRandomGenerator {
 
 	SecureRandom rnd;
-	
+
 	public SecureRND() throws NoSuchAlgorithmException {
 		rnd = JCEProvider.getSecureRandom();
 	}
-	
+
 	public void nextBytes(byte[] bytes) {
 		rnd.nextBytes(bytes);
 	}
 
 	public void nextBytes(byte[] bytes, int off, int len) throws SshException {
-		
+
 		try {
 			byte[] tmp = new byte[len];
 			rnd.nextBytes(tmp);
 			System.arraycopy(tmp, 0, bytes, off, len);
-		} catch(ArrayIndexOutOfBoundsException ex){
-			throw new SshException("ArrayIndexOutOfBoundsException: Index " + off + " on actual array length " + bytes.length + " with len=" + len, SshException.INTERNAL_ERROR);
+		} catch (ArrayIndexOutOfBoundsException ex) {
+			throw new SshException("ArrayIndexOutOfBoundsException: Index "
+					+ off + " on actual array length " + bytes.length
+					+ " with len=" + len, SshException.INTERNAL_ERROR);
 		}
 	}
 
