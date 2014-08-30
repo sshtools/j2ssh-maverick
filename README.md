@@ -16,6 +16,12 @@ Binary builds are available on SourceForge.net at the URL below.
 
 https://sourceforge.net/projects/javassh/
 
+Documentation
+-------------
+
+You can find javadocs at https://www.sshtools.com/gpl-javadocs
+
+Examples are included in the binary download or in the src/main/examples folder of the source tree.
 
 Maven Repository
 ----------------
