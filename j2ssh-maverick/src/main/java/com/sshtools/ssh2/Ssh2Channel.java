@@ -69,7 +69,7 @@ import com.sshtools.util.ByteArrayWriter;
  * <p>
  * After the channel has been created the channel is opened through a call to <a
  * href
- * ="Ssh2Client.html#openChannel(com.maverick.ssh.message.SshAbstractChannel)"
+ * ="Ssh2Client.html#openChannel(com.sshtools.ssh.message.SshAbstractChannel)"
  * >openChannel(Ssh2Channel channel)</a>. Once the channel is open you can use
  * the IO streams to send and receive data.
  * </p>
@@ -588,7 +588,7 @@ public class Ssh2Channel extends SshAbstractChannel {
 
 	/**
 	 * Called when extended data arrives. This method fires the
-	 * {@link com.sshtools.ssh.ChannelEventListener#extendedDataReceived(com.maverick.ssh.Channel, byte[], int, int, int)}
+	 * {@link com.sshtools.ssh.ChannelEventListener#extendedDataReceived(com.sshtools.ssh.Channel, byte[], int, int, int)}
 	 * event so to maintain code compatibility <em>always</em> call the super
 	 * method in any overidden method.
 	 * 

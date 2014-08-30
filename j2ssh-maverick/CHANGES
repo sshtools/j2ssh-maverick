@@ -622,7 +622,7 @@ Features
 	o  AbstractComponentFactory: Recoded so that algorithm lists can be fully ordered, there is now a new changePositionofAlgorithm method which facilitates this.
 	o  AES192CBC and AES256CBC ciphers added.
 	o  ComponentManager: Recoded so that ciphers and MACs can have independent preferences for Server->Client and Client->Server communications.
-	o  ComponentManager: now tries JCE first if the "com.maverick.ssh.components.ComponentManager.tryStandaloneCryptographyBeforeJCE" system property is set to false otherwise Standalone is tried first, this allows the choice to use JCE or Standalone cryptography to be made programatically instead of by changing the classpath or creating a class loader.
+	o  ComponentManager: now tries JCE first if the "com.sshtools.ssh.components.ComponentManager.tryStandaloneCryptographyBeforeJCE" system property is set to false otherwise Standalone is tried first, this allows the choice to use JCE or Standalone cryptography to be made programatically instead of by changing the classpath or creating a class loader.
 	o  DiffieHellmanGroup14Sha1: Removed until better code safety is added in version 1.4.1 to prevent seemingly random errors when JCE'S are used that do not support it.
 	o  SftpClient, SshClient, Ssh2Client, Shell, ForwardingClient, now implement a new Client interface giving them all an exit() method with the same name.
 	o  Ssh1Client: Added exit method.
@@ -632,13 +632,13 @@ Bug Fixes
 	o  ForwardingClient: Wrapped com.sshtools.net.ForwardingClient.addListener(ForwardingClientListener listener) in an if(listener!=null)  {..} block.
 	o  ShellEnvironment: moved session.close();  statements so that it does not close already closed sessions.
 	o  ShellEnvironment: fixed so that when it detects 'cygwin' SSHD servers running on windows boxes it sets osDescription, previously only set osType.
-	o  Ssh2RsaPublicKey: Fixed com.maverick.ssh.components.standalone.Ssh2RsaPublicKey equals method so that it is compatible with jce.Ssh2RsaPublicKey.
+	o  Ssh2RsaPublicKey: Fixed com.sshtools.ssh.components.standalone.Ssh2RsaPublicKey equals method so that it is compatible with jce.Ssh2RsaPublicKey.
 	o  Ssh2Client: Removed an unused password variable in Ssh2Client.
-	o  ByteArrayReader: fixed com.maverick.util.ByteArrayReader.readShort(byte[], int), it was treating the byte[] as having the 0 index byte as the least significant instead of the most significant byte.
-	o  IOStreamConnector: com.maverick.util.IOStreamConnector.close() now sets the connectors state to closed even if it has not been started.
+	o  ByteArrayReader: fixed com.sshtools.util.ByteArrayReader.readShort(byte[], int), it was treating the byte[] as having the 0 index byte as the least significant instead of the most significant byte.
+	o  IOStreamConnector: com.sshtools.util.IOStreamConnector.close() now sets the connectors state to closed even if it has not been started.
 	o  SftpClient: com.sshtools.sftp.SftpClient.rename() now doesn't attempt to rename to an existing filename.
 	o  AbstractComponentFactory: made AbstractComponentFactory's add,remove,clear methods synchronised.
-	o  SshMessageRouter: com.maverick.ssh.message.SshMessageRouter.start() now only starts the messagepump if it has not already been started.
+	o  SshMessageRouter: com.sshtools.ssh.message.SshMessageRouter.start() now only starts the messagepump if it has not already been started.
 	o  Fixed the word occurred which was misspelt as occured.
 	o  When the server required no authentication and therefore had no authentication methods, the message pump on buffered sessions was not started if authenticate() was not called.
 	o  fixed an scp absolute path problem
@@ -652,8 +652,8 @@ Features
 	o  Added getHost() method to AuthenticationProtocol which returns the host the underlying transport protocol has connected to
 	o  Added sendMessage() method to AuthenticationProtocol which sends a transport message.
 	o  Added getProvider() method to TransportProtocol which returns the underlying SshTransport
-	o  Added com.maverick.ssh2.TransportProtocol.getContext() method that returns the current SshContext.
-	o  Added com.maverick.ssh2.GSSCallback class.
+	o  Added com.sshtools.ssh2.TransportProtocol.getContext() method that returns the current SshContext.
+	o  Added com.sshtools.ssh2.GSSCallback class.
 	o  Prepended "MessagePump" onto message pump thread name.
 	o  Refactored build file.
 	o  Added more debug information for when SshConnector fails to initialize Ssh2.
@@ -668,10 +668,10 @@ Features
 	o  Added Arrayequals method to transport protocol from Java 1.2 to make keep 1.1. compatibility
 
 Bug Fixes
-	o  Fixed com.maverick.util.IOStreamConnector.setBufferSize() so that an IllegalArgumentException is thrown for invalid sizes rather than valid sizes
-	o  Fixed synchronization issue in com.maverick.ssh.components.ComponentManager.getInstance() so that 
+	o  Fixed com.sshtools.util.IOStreamConnector.setBufferSize() so that an IllegalArgumentException is thrown for invalid sizes rather than valid sizes
+	o  Fixed synchronization issue in com.sshtools.ssh.components.ComponentManager.getInstance() so that 
 	    if first call to getInstance is made simultaneously by 2 threads it is only initialized once by making the second thread wait till the first has initialized it. 
-	o  Fixed bug in com.maverick.ssh2.Ssh2Channel.processChannelMessage(SshChannelMessage) where 
+	o  Fixed bug in com.sshtools.ssh2.Ssh2Channel.processChannelMessage(SshChannelMessage) where 
 	    SSH_MSG_CHANNEL_CLOSE messages were being consumed once processed rather than passing back up the call chain.
 	o  Fixed some 1.1 compatibility problems.
 
@@ -684,7 +684,7 @@ Features
 Bug Fixes
 	o  Openssh public keys now don't require comments.
 	o  Bug fix in SftpSubSystemChannel.performOptimizedRead relating to files that are not multiples of 32kb.
-	o  Synchronization issue fixed in com.maverick.ssh2.Ssh2Channel.processChannelMessage(SshChannelMessage), 
+	o  Synchronization issue fixed in com.sshtools.ssh2.Ssh2Channel.processChannelMessage(SshChannelMessage), 
 		so that it no longer attempts to close a channel twice.
 
 -----------------
@@ -693,12 +693,12 @@ J2SSH Maverick 1.3.8 - September 3, 2007
 
 Features
 	o  Option added to Shell implementation to pre-configure the remote operating system type to prevent auto-detection.
-	o  Added hassize(), hasuid(), hasgid() methods to com.maverick.sftp.SftpFileAttributes
+	o  Added hassize(), hasuid(), hasgid() methods to com.sshtools.sftp.SftpFileAttributes
 
 Bug Fixes
 	o  Removed unused private transferFile() method from SftpClient
 	o  Perl5RegExpMatching always threw ClassCastException
-	o  Changed com.maverick.ssh.components.AbstractComponentFactory.createDelimitedList(String preferred, Enumeration names) 
+	o  Changed com.sshtools.ssh.components.AbstractComponentFactory.createDelimitedList(String preferred, Enumeration names) 
 		so that if the preferred component is not contained within the enumeration, it is not prepended to the list.
 	o  Made Shell.setPromptTimeoutPeriod synchronized
 	o  Various low level code optimizations
@@ -708,7 +708,7 @@ Bug Fixes
 	o  Tweaked order of code in SftpClient.get() so that local files are processed before remote files, this reduces server load, 
     		in cases where either exceptions are thrown or the api is used badly.
 	o  ScpClient where relative paths were processed incorrectly
-	o  com.maverick.ssh.CommandExecutor is now deprecated, the shell class should be used instead.
+	o  com.sshtools.ssh.CommandExecutor is now deprecated, the shell class should be used instead.
 	o  ScpClient.putFiles fixes.
     
 -----------------
@@ -1171,7 +1171,7 @@ J2SSH Maverick 1.0.3 - Feb 2, 2004
 Features
     o  Additional methods in SftpSubsystemChannel to 'performOptimizedWrite' and 'performOptimizedRead'
     o  Optimized SftpClient 'put' and 'get' methods.
-    o  SubsystemChannel moved to 'com.maverick.ssh' package and refactored to enable operation over both SSH1 and SSH2.
+    o  SubsystemChannel moved to 'com.sshtools.ssh' package and refactored to enable operation over both SSH1 and SSH2.
     o  SftpClient now operates over SSH1 by executing the subsystem directly. Use Ssh1Context's 'setSFTPProvider' to change the default binary location of '/usr/sbin/sftp-server'
     o  SSHTools Licensing system has been integrated with the product.
 

@@ -36,7 +36,7 @@ public interface SshDsaPrivateKey extends SshPrivateKey {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.maverick.ssh.SshPrivateKey#sign(byte[])
+	 * @see com.sshtools.ssh.SshPrivateKey#sign(byte[])
 	 */
 	public abstract byte[] sign(byte[] msg) throws IOException;
 

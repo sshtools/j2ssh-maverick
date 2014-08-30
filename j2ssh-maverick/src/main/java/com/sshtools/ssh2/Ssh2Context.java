@@ -197,7 +197,7 @@ public final class Ssh2Context implements SshContext {
 			}
 
 			compressionsSC = new ComponentFactory(
-					Class.forName("com.maverick.ssh.compression.SshCompression"));
+					Class.forName("com.sshtools.ssh.compression.SshCompression"));
 
 			if (Log.isDebugEnabled()) {
 				Log.debug(this, "Adding None Compression");
@@ -216,7 +216,7 @@ public final class Ssh2Context implements SshContext {
 			}
 
 			compressionsCS = new ComponentFactory(
-					Class.forName("com.maverick.ssh.compression.SshCompression"));
+					Class.forName("com.sshtools.ssh.compression.SshCompression"));
 
 			if (Log.isDebugEnabled()) {
 				Log.debug(this, "Adding None Compression");

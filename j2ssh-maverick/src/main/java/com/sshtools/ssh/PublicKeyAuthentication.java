@@ -84,7 +84,7 @@ public class PublicKeyAuthentication implements SshAuthentication {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.maverick.ssh.SshAuthentication#setUsername(java.lang.String)
+	 * @see com.sshtools.ssh.SshAuthentication#setUsername(java.lang.String)
 	 */
 	public void setUsername(String username) {
 		this.username = username;
@@ -93,7 +93,7 @@ public class PublicKeyAuthentication implements SshAuthentication {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.maverick.ssh.SshAuthentication#getUsername()
+	 * @see com.sshtools.ssh.SshAuthentication#getUsername()
 	 */
 	public String getUsername() {
 		return username;
