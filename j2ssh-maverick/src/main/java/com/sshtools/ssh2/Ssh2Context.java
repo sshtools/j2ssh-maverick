@@ -236,6 +236,7 @@ public final class Ssh2Context implements SshContext {
 			}
 
 		} catch (Throwable t) {
+			t.printStackTrace();
 			throw new SshException(t.getMessage() != null ? t.getMessage() : t
 					.getClass().getName(), SshException.INTERNAL_ERROR); // SSHException
 		}

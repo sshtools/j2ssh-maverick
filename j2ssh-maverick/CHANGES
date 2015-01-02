@@ -2,6 +2,17 @@
 =  CHANGE LOG   =
 =================
 
+J2SSH Maverick 1.5.1 - TBC
+
+Bug Fixes
+	o Removed references to com.maverick namespace which caused some startup issues.
+	o Context and ComponentManager are now initialised correctly.
+	o Added missing and default NoLogger implementation to prevent startup errors caused by no logging implementation being present.
+	
+=================
+=  HISTORY      =
+=================
+
 J2SSH Maverick 1.5.0 - Aug 28, 2014
 
 Features
@@ -14,9 +25,7 @@ Bug Fixes
 	o Automatically attempt to add BouncyCastle JCE provider if found in class path. If not installed, there may no large prime support for some Diffie Hellman algorithms.
 	o Evaluated and removed all java warnings through either re-factor or suppression.
 	
-=================
-=  HISTORY      =
-=================
+-----------------
 
 J2SSH Maverick 1.4.53 - Aug 19, 2014
 

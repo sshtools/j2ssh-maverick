@@ -47,7 +47,7 @@ public class PasswordConnect {
 		try {
 			System.out.print("Hostname: ");
 			String hostname;
-			hostname = "javassh.com"; // reader.readLine();
+			hostname = reader.readLine();
 
 			int idx = hostname.indexOf(':');
 			int port = 22;

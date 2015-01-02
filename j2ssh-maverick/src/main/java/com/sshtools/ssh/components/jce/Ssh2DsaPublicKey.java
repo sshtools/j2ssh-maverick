@@ -73,7 +73,7 @@ public class Ssh2DsaPublicKey implements SshDsaPublicKey {
 	 * Get the algorithm name for the public key.
 	 * 
 	 * @return the algorithm name, for example "ssh-dss"
-	 * @todo Implement this com.maverick.ssh.SshPublicKey method
+	 * @todo Implement this com.sshtools.ssh.SshPublicKey method
 	 */
 	public String getAlgorithm() {
 		return "ssh-dss";
@@ -82,7 +82,7 @@ public class Ssh2DsaPublicKey implements SshDsaPublicKey {
 	/**
 	 * 
 	 * @return the bit length of the public key
-	 * @todo Implement this com.maverick.ssh.SshPublicKey method
+	 * @todo Implement this com.sshtools.ssh.SshPublicKey method
 	 */
 	public int getBitLength() {
 		return pubkey.getParams().getP().bitLength();
@@ -94,7 +94,7 @@ public class Ssh2DsaPublicKey implements SshDsaPublicKey {
 	 * 
 	 * @return an encoded byte array
 	 * @throws SshException
-	 * @todo Implement this com.maverick.ssh.SshPublicKey method
+	 * @todo Implement this com.sshtools.ssh.SshPublicKey method
 	 */
 	public byte[] getEncoded() throws SshException {
 		ByteArrayWriter baw = new ByteArrayWriter();
@@ -122,7 +122,7 @@ public class Ssh2DsaPublicKey implements SshDsaPublicKey {
 	 * 
 	 * @return java.lang.String
 	 * @throws SshException
-	 * @todo Implement this com.maverick.ssh.SshPublicKey method
+	 * @todo Implement this com.sshtools.ssh.SshPublicKey method
 	 */
 	public String getFingerprint() throws SshException {
 		return SshKeyFingerprint.getFingerprint(getEncoded());
@@ -138,7 +138,7 @@ public class Ssh2DsaPublicKey implements SshDsaPublicKey {
 	 * @param len
 	 *            int
 	 * @throws SshException
-	 * @todo Implement this com.maverick.ssh.SshPublicKey method
+	 * @todo Implement this com.sshtools.ssh.SshPublicKey method
 	 */
 	public void init(byte[] blob, int start, int len) throws SshException {
 
@@ -192,7 +192,7 @@ public class Ssh2DsaPublicKey implements SshDsaPublicKey {
 	 *         corresponding private key that owns this public key, otherwise
 	 *         <code>false</code>.
 	 * @throws SshException
-	 * @todo Implement this com.maverick.ssh.SshPublicKey method
+	 * @todo Implement this com.sshtools.ssh.SshPublicKey method
 	 */
 	public boolean verifySignature(byte[] signature, byte[] data)
 			throws SshException {

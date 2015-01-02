@@ -2,7 +2,7 @@ package com.sshtools.logging;
 
 public class LoggerFactory {
 
-	static Logger logger = null;
+	static Logger logger = new NoLogger();
 
 	static boolean enabled = false;
 

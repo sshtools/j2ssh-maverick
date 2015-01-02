@@ -55,7 +55,7 @@ public class NoneCipher extends SshCipher {
 	 * Get the cipher block size.
 	 * 
 	 * @return the block size in bytes.
-	 * @todo Implement this com.maverick.ssh.cipher.SshCipher method
+	 * @todo Implement this com.sshtools.ssh.cipher.SshCipher method
 	 */
 	public int getBlockSize() {
 		return 8;
@@ -71,7 +71,7 @@ public class NoneCipher extends SshCipher {
 	 * @param keydata
 	 *            the key data
 	 * @throws IOException
-	 * @todo Implement this com.maverick.ssh.cipher.SshCipher method
+	 * @todo Implement this com.sshtools.ssh.cipher.SshCipher method
 	 */
 	public void init(int mode, byte[] iv, byte[] keydata) throws IOException {
 	}
@@ -93,7 +93,7 @@ public class NoneCipher extends SshCipher {
 	 * @param len
 	 *            int
 	 * @throws IOException
-	 * @todo Implement this com.maverick.ssh.cipher.SshCipher method
+	 * @todo Implement this com.sshtools.ssh.cipher.SshCipher method
 	 */
 	public void transform(byte[] src, int start, byte[] dest, int offset,
 			int len) throws IOException {

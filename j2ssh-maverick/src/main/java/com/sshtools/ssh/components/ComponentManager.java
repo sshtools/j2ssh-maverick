@@ -85,11 +85,13 @@ public abstract class ComponentManager {
 	 * call to getInstance.
 	 * 
 	 * @return ComponentManager
+	 * @throws SshException 
 	 */
-	public static ComponentManager getInstance() {
+	public static ComponentManager getInstance() throws SshException {
 		synchronized (ComponentManager.class) {
 			if (instance == null) {
 				instance = new JCEComponentManager();
+				instance.init();
 			}
 			return instance;
 		}

@@ -49,7 +49,7 @@ public class SshX509DsaPublicKey extends Ssh2DsaPublicKey {
 	 * Get the algorithm name for the public key.
 	 * 
 	 * @return the algorithm name, for example "ssh-dss"
-	 * @todo Implement this com.maverick.ssh.SshPublicKey method
+	 * @todo Implement this com.sshtools.ssh.SshPublicKey method
 	 */
 	public String getAlgorithm() {
 		return X509V3_SIGN_DSA;
@@ -61,7 +61,7 @@ public class SshX509DsaPublicKey extends Ssh2DsaPublicKey {
 	 * 
 	 * @return an encoded byte array
 	 * @throws SshException
-	 * @todo Implement this com.maverick.ssh.SshPublicKey method
+	 * @todo Implement this com.sshtools.ssh.SshPublicKey method
 	 */
 	public byte[] getEncoded() throws SshException {
 
@@ -83,7 +83,7 @@ public class SshX509DsaPublicKey extends Ssh2DsaPublicKey {
 	 * @param len
 	 *            int
 	 * @throws SshException
-	 * @todo Implement this com.maverick.ssh.SshPublicKey method
+	 * @todo Implement this com.sshtools.ssh.SshPublicKey method
 	 */
 	public void init(byte[] blob, int start, int len) throws SshException {
 
