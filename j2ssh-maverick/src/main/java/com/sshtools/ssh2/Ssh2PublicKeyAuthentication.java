@@ -54,7 +54,7 @@ public class Ssh2PublicKeyAuthentication extends PublicKeyAuthentication
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.maverick.ssh2.AuthenticationClient#authenticate(com.maverick.ssh2
+	 * com.sshtools.ssh2.AuthenticationClient#authenticate(com.sshtools.ssh2
 	 * .AuthenticationProtocol, java.lang.String)
 	 */
 	public void authenticate(AuthenticationProtocol authentication,

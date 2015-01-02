@@ -33,7 +33,7 @@ public abstract class ChannelAdapter implements ChannelEventListener {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.maverick.ssh.ChannelEventListener#channelOpened(com.maverick.ssh.
+	 * com.sshtools.ssh.ChannelEventListener#channelOpened(com.sshtools.ssh.
 	 * SshChannel)
 	 */
 	public void channelOpened(SshChannel channel) {
@@ -44,7 +44,7 @@ public abstract class ChannelAdapter implements ChannelEventListener {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.maverick.ssh.ChannelEventListener#channelClosing(com.maverick.ssh
+	 * com.sshtools.ssh.ChannelEventListener#channelClosing(com.sshtools.ssh
 	 * .SshChannel)
 	 */
 	public void channelClosing(SshChannel channel) {
@@ -55,7 +55,7 @@ public abstract class ChannelAdapter implements ChannelEventListener {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.maverick.ssh.ChannelEventListener#channelClosed(com.maverick.ssh.
+	 * com.sshtools.ssh.ChannelEventListener#channelClosed(com.sshtools.ssh.
 	 * SshChannel)
 	 */
 	public void channelClosed(SshChannel channel) {
@@ -66,7 +66,7 @@ public abstract class ChannelAdapter implements ChannelEventListener {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.maverick.ssh.ChannelEventListener#channelEOF(com.maverick.ssh.SshChannel
+	 * com.sshtools.ssh.ChannelEventListener#channelEOF(com.sshtools.ssh.SshChannel
 	 * )
 	 */
 	public void channelEOF(SshChannel channel) {
@@ -76,7 +76,7 @@ public abstract class ChannelAdapter implements ChannelEventListener {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.maverick.ssh.ChannelEventListener#dataReceived(com.maverick.ssh.
+	 * @see com.sshtools.ssh.ChannelEventListener#dataReceived(com.sshtools.ssh.
 	 * SshChannel, byte[], int, int)
 	 */
 	public void dataReceived(SshChannel channel, byte[] buf, int off, int len) {
@@ -87,7 +87,7 @@ public abstract class ChannelAdapter implements ChannelEventListener {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.maverick.ssh.ChannelEventListener#dataSent(com.maverick.ssh.SshChannel
+	 * com.sshtools.ssh.ChannelEventListener#dataSent(com.sshtools.ssh.SshChannel
 	 * , byte[], int, int)
 	 */
 	public void dataSent(SshChannel channel, byte[] buf, int off, int len) {
@@ -98,7 +98,7 @@ public abstract class ChannelAdapter implements ChannelEventListener {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.maverick.ssh.ChannelEventListener#extendedDataReceived(com.maverick
+	 * com.sshtools.ssh.ChannelEventListener#extendedDataReceived(com.sshtools
 	 * .ssh.SshChannel, byte[], int, int, int)
 	 */
 	public void extendedDataReceived(SshChannel channel, byte[] data, int off,

@@ -69,7 +69,7 @@ import java.io.OutputStream;
  * </blockquote>
  * 
  * @author Lee David Painter
- * @see com.maverick.ssh1.Ssh1Session
+ * @see com.sshtools.ssh1.Ssh1Session
  * @see com.sshtools.ssh2.Ssh2Session
  */
 public interface SshSession extends SshChannel {

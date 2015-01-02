@@ -92,7 +92,8 @@ public final class SshConnector {
 
 	boolean fipsEnabled = false;
 
-	SshConnector() {
+	SshConnector() throws SshException {
+		ssh2Context = new Ssh2Context();
 	}
 
 	/**

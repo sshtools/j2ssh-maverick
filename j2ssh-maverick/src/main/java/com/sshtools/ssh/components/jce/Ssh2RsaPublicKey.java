@@ -74,7 +74,7 @@ public class Ssh2RsaPublicKey implements SshRsaPublicKey {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.maverick.ssh.publickey.RsaPublicKey#getEncoded()
+	 * @see com.sshtools.ssh.publickey.RsaPublicKey#getEncoded()
 	 */
 	public byte[] getEncoded() throws SshException {
 		ByteArrayWriter baw = new ByteArrayWriter();
@@ -107,7 +107,7 @@ public class Ssh2RsaPublicKey implements SshRsaPublicKey {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.maverick.ssh.SshPublicKey#init(byte[], int, int)
+	 * @see com.sshtools.ssh.SshPublicKey#init(byte[], int, int)
 	 */
 	public void init(byte[] blob, int start, int len) throws SshException {
 

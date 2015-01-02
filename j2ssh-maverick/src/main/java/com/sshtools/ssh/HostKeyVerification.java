@@ -46,7 +46,7 @@ import com.sshtools.ssh.components.SshPublicKey;
  * </p>
  * <p>
  * The public key instances supplied to the <a href=
- * "#verifyHost(java.lang.String, com.maverick.ssh.components.SshPublicKey)">
+ * "#verifyHost(java.lang.String, com.sshtools.ssh.components.SshPublicKey)">
  * verifyHost</a> method will be one of the following implementations:<br>
  * </p>
  * <p>

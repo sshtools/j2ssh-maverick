@@ -346,13 +346,13 @@ public class JCEComponentManager extends ComponentManager implements
 		// classpath, this is why we use class.forname
 		try {
 			Class<?> DiffieHellmanGroup14Sha1 = Class
-					.forName("com.maverick.ssh.components.jce.DiffieHellmanGroup14Sha1");
+					.forName("com.sshtools.ssh.components.jce.DiffieHellmanGroup14Sha1");
 			Class<?> DiffieHellmanGroup1Sha1 = Class
-					.forName("com.maverick.ssh.components.jce.DiffieHellmanGroup1Sha1");
+					.forName("com.sshtools.ssh.components.jce.DiffieHellmanGroup1Sha1");
 			Class<?> DiffieHellmanGroupExchangeSha1 = Class
-					.forName("com.maverick.ssh.components.jce.DiffieHellmanGroupExchangeSha1");
+					.forName("com.sshtools.ssh.components.jce.DiffieHellmanGroupExchangeSha1");
 			Class<?> DiffieHellmanGroupExchangeSha256 = Class
-					.forName("com.maverick.ssh.components.jce.DiffieHellmanGroupExchangeSha256");
+					.forName("com.sshtools.ssh.components.jce.DiffieHellmanGroupExchangeSha256");
 
 			if (testKeyExchangeAlgorithm("diffie-hellman-group14-sha1",
 					DiffieHellmanGroup14Sha1)) {

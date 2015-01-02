@@ -37,7 +37,7 @@ package com.sshtools.ssh;
  * 
  * @author Lee David Painter
  * @see SshConnector
- * @see com.maverick.ssh1.Ssh1Context
+ * @see com.sshtools.ssh1.Ssh1Context
  * @see com.sshtools.ssh2.Ssh2Context
  */
 public interface SshContext {

@@ -34,7 +34,7 @@ import com.sshtools.ssh.SshException;
  * by the SftpClient's copyRemoteDirectory/copyLocalDirectory methods.
  * </p>
  * <p>
- * The objects returned could either be {@link com.maverick.sftp.SftpFile} or
+ * The objects returned could either be {@link com.sshtools.sftp.SftpFile} or
  * <em>java.io.File</em> depending upon the commit state and whether
  * syncronization is required. Any code using the values returned should be able
  * to handle both types of file object.
