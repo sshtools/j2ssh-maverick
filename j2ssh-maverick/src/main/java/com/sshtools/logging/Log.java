@@ -23,12 +23,9 @@ package com.sshtools.logging;
 
 /**
  * This is a wrapper class. It allows all log.info and log.debug calls to be
- * replaced with its methods. When a Log* method is called it fires a new J2SSH
- * event of the appropriate log type, and adds the message as an attribute. If a
- * throwable object is passed as a parameter, this is added as an attribute of
- * event fired.
+ * replaced with its methods.
  * 
- * @author david
+ * @author Lee David Painter
  * 
  */
 public final class Log {

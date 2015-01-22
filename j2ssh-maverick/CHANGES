@@ -2,16 +2,23 @@
 =  CHANGE LOG   =
 =================
 
-J2SSH Maverick 1.5.0 - Jan 2, 2015
+J2SSH Maverick 1.5.2
+
+Features
+	o Added SimpleLogger implementation.
+	
+=================
+=  HISTORY      =
+=================
+
+J2SSH Maverick 1.5.1 - Jan 2, 2015
 
 Bug Fixes
 	o Removed references to com.maverick namespace which caused some startup issues.
 	o Context and ComponentManager are now initialised correctly.
 	o Added missing and default NoLogger implementation to prevent startup errors caused by no logging implementation being present.
 	
-=================
-=  HISTORY      =
-=================
+-----------------
 
 J2SSH Maverick 1.5.0 - Aug 28, 2014
 
