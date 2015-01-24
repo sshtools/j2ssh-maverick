@@ -6,6 +6,7 @@ J2SSH Maverick 1.5.2 - TBC
 
 Features
 	o Added SimpleLogger implementation.
+        o Added Dynamic Port Forwarding.
 	
 =================
 =  HISTORY      =
