@@ -20,7 +20,7 @@
     along with J2SSH Maverick.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<!-- Copyright 2003-2014 SSHTOOLS Limited. All Rights Reserved. For product 
+<!-- Copyright 2003-2015 SSHTOOLS Limited. All Rights Reserved. For product 
 	documentation visit https://www.sshtools.com/ This file is part of J2SSH 
 	Maverick. J2SSH Maverick is free software: you can redistribute it and/or 
 	modify it under the terms of the GNU General Public License as published 
@@ -36,14 +36,31 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.sshtools</groupId>
 	<artifactId>j2ssh-maverick</artifactId>
-	<version>1.5.2-SNAPSHOT</version>
+	<version>1.5.2</version>
 	<name>J2SSH Maverick</name>
 	<description>Open source SSH2 API</description>
-
+    <url>http://www.sshtools.com</url>
 	<properties>
 		<distributionFileName>j2ssh-maverick-${project.version}</distributionFileName>
 	</properties>
-	
+	<licenses>
+		<license>
+			<name>GNU General Public License</name>
+			<url>http://www.gnu.org/licenses/gpl.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<scm>
+		<url>https://github.com/sshtools/j2ssh-maverick/</url>
+		<connection>https://github.com/sshtools/j2ssh-maverick.git</connection>
+	</scm>
+	<developers>
+		<developer>
+			<id>lee</id>
+			<name>Lee David Painter</name>
+			<email>lee@sshtools.com</email>
+		</developer>
+	</developers>
 	<dependencies>
 		<dependency>
 			<groupId>oro</groupId>
@@ -62,6 +79,16 @@
 		</dependency>
 
 	</dependencies>
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh-sshtools</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh-sshtools</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
 	<build>
 		<plugins>
 			<plugin>
@@ -72,6 +99,19 @@
 					<source>1.5</source>
 					<target>1.5</target>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<artifactId>maven-javadoc-plugin</artifactId>
@@ -90,7 +130,22 @@
 								<!-- include ONLY dependencies I control -->
 								<dependencySourceInclude>com.sshtools:*</dependencySourceInclude>
 							</dependencySourceIncludes>
+							<additionalparam>-Xdoclint:none</additionalparam>
 						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.5</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>
@@ -140,6 +195,17 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.3</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh-sshtools</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
