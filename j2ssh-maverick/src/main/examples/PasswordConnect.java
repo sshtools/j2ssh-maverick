@@ -23,8 +23,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import com.sshtools.logging.LoggerFactory;
+import com.sshtools.logging.LoggerLevel;
+import com.sshtools.logging.SimpleLogger;
 import com.sshtools.net.SocketTransport;
-import com.sshtools.publickey.ConsoleKnownHostsKeyVerification;
 import com.sshtools.ssh.PasswordAuthentication;
 import com.sshtools.ssh.PseudoTerminalModes;
 import com.sshtools.ssh.SshAuthentication;
@@ -41,6 +43,8 @@ public class PasswordConnect {
 
 	public static void main(String[] args) {
 
+		LoggerFactory.setInstance(new SimpleLogger(LoggerLevel.DEBUG));
+		
 		final BufferedReader reader = new BufferedReader(new InputStreamReader(
 				System.in));
 
@@ -60,7 +64,7 @@ public class PasswordConnect {
 			System.out.print("Username [Enter for "
 					+ System.getProperty("user.name") + "]: ");
 			String username;
-			username = "ubuntu"; // reader.readLine();
+			username = reader.readLine();
 
 			if (username == null || username.trim().equals(""))
 				username = System.getProperty("user.name");
@@ -69,10 +73,6 @@ public class PasswordConnect {
 			 * Create an SshConnector instance
 			 */
 			SshConnector con = SshConnector.createInstance();
-
-			// Verify server host keys using the users known_hosts file
-			con.getContext().setHostKeyVerification(
-					new ConsoleKnownHostsKeyVerification());
 
 			/**
 			 * Connect to the host

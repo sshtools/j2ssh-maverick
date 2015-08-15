@@ -18,8 +18,24 @@
  * You should have received a copy of the GNU General Public License
  * along with J2SSH Maverick.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.sshtools.logging;
+/**
+ * This file is originally from the http://sourceforge.net/projects/jsocks/
+ * released under the LGPL.
+ */
+package socks;
 
-public enum LoggerLevel {
-	ERROR, INFO, DEBUG
+/**
+  SOCKS5 none authentication. Dummy class does almost nothing.
+*/
+public class AuthenticationNone implements Authentication{
+
+    public Object[] doSocksAuthentication(int methodId,
+                                          java.net.Socket proxySocket)
+           throws java.io.IOException{
+
+       if(methodId!=0) return null;
+
+       return new Object[] { proxySocket.getInputStream(),
+                             proxySocket.getOutputStream()};
+   }
 }
