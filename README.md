@@ -8,6 +8,18 @@ License
 
 This project is licensed strictly under the GPLv3. You are required to comply with these terms and as such does not allow inclusion in commercial redistributable projects unless the terms of the GPLv3 are fully complied with (i.e. your code is also distributed under the GPLv3 too). 
 
+Maven Repository
+----------------
+
+**Releases are now available at maven central.** Simply include the following dependency in your pom.
+
+```
+<dependency>
+   <groupId>com.sshtools</groupId>
+   <artifactId>j2ssh-maverick</artifactId>
+   <version>1.5.2</version>
+</dependency>
+```
  
 Binary Builds
 -------------
@@ -22,11 +34,6 @@ Documentation
 You can find javadocs at https://www.sshtools.com/gpl-javadocs
 
 Examples are included in the binary download or in the src/main/examples folder of the source tree.
-
-Maven Repository
-----------------
-
-We are in the process of establishing a maven repository for this artifact. When this becomes available more information will be provided here. 
 
 
 Status
