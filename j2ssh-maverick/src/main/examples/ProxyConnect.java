@@ -96,7 +96,7 @@ public class ProxyConnect {
 			 */
 			SshClient ssh = con.connect(HttpProxyTransport.connectViaProxy(
 					hostname, port, "mars", 8080, "user", "password",
-					"J2SSH Maverick"), username);
+					"J2SSH Maverick"), username, true);
 
 			/**
 			 * Authenticate the user using password authentication
