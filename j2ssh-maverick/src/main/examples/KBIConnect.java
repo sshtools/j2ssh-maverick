@@ -100,7 +100,7 @@ public class KBIConnect {
 			/**
 			 * Connect to the host
 			 */
-			Ssh2Client ssh = con.connect(new SocketTransport(hostname, port),
+			Ssh2Client ssh = (Ssh2Client) con.connect(new SocketTransport(hostname, port),
 					username, true);
 
 			/**

@@ -80,11 +80,11 @@ public class PasswordConnect {
 
 			System.out.println("Connecting to " + hostname);
 
-			SocketTransport transport = new SocketTransport(hostname, port, true);
+			SocketTransport transport = new SocketTransport(hostname, port);
 
 			System.out.println("Creating SSH client");
 
-			final SshClient ssh = con.connect(transport, username);
+			final SshClient ssh = con.connect(transport, username, true);
 
 			/**
 			 * Authenticate the user using password authentication

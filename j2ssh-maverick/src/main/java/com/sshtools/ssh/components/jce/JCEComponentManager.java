@@ -412,7 +412,13 @@ public class JCEComponentManager extends ComponentManager implements
 		if (testJCECipher("aes256-ctr", AES256Ctr.class)) {
 			ciphers.add("aes256-ctr", AES256Ctr.class);
 		}
-
+	}
+	
+	/**
+	 * Install deprecated Counter-Block-Mode ciphers.
+	 * @param ciphers
+	 */
+	public void installCBCCiphers(ComponentFactory ciphers) {
 		if (testJCECipher("3des-cbc", TripleDesCbc.class)) {
 			ciphers.add("3des-cbc", TripleDesCbc.class);
 		}
@@ -432,7 +438,14 @@ public class JCEComponentManager extends ComponentManager implements
 		if (testJCECipher("aes256-cbc", AES256Cbc.class)) {
 			ciphers.add("aes256-cbc", AES256Cbc.class);
 		}
-
+	}
+	
+	/**
+	 * Install deprecated ArcFour ciphers
+	 * @param ciphers
+	 */
+	public void installArcFourCiphers(ComponentFactory ciphers) {
+		
 		if (testJCECipher("arcfour", ArcFour.class)) {
 			ciphers.add("arcfour", ArcFour.class);
 		}
@@ -444,7 +457,6 @@ public class JCEComponentManager extends ComponentManager implements
 		if (testJCECipher("arcfour256", ArcFour256.class)) {
 			ciphers.add("arcfour256", ArcFour256.class);
 		}
-
 	}
 
 	private boolean testKeyExchangeAlgorithm(String name,

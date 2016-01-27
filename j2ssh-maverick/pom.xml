@@ -36,7 +36,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.sshtools</groupId>
 	<artifactId>j2ssh-maverick</artifactId>
-	<version>1.5.2</version>
+	<version>1.5.3</version>
 	<name>J2SSH Maverick</name>
 	<description>Open source SSH2 API</description>
     <url>http://www.sshtools.com</url>
