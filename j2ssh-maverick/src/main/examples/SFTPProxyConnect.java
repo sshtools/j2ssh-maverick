@@ -78,7 +78,7 @@ public class SFTPProxyConnect {
 			 * Connect to the host
 			 */
 			final SshClient ssh = con.connect(new SocketTransport(proxyServer,
-					22), username);
+					22), username, true);
 
 			/**
 			 * Authenticate the user using password authentication
