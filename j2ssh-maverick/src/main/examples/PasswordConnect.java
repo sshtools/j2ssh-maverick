@@ -80,7 +80,7 @@ public class PasswordConnect {
 
 			System.out.println("Connecting to " + hostname);
 
-			SocketTransport transport = new SocketTransport(hostname, port);
+			SocketTransport transport = new SocketTransport(hostname, port, true);
 
 			System.out.println("Creating SSH client");
 
