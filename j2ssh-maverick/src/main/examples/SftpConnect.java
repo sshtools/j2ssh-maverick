@@ -90,7 +90,7 @@ public class SftpConnect {
 			SocketTransport t = new SocketTransport(hostname, port);
 			t.setTcpNoDelay(true);
 
-			SshClient ssh = con.connect(t, username);
+			SshClient ssh = con.connect(t, username, true);
 
 			Ssh2Client ssh2 = (Ssh2Client) ssh;
 			/**
