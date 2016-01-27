@@ -75,7 +75,7 @@ public class SftpResume {
 			 * Connect to the host
 			 */
 			SshClient ssh = con.connect(new SocketTransport(hostname, port),
-					username);
+					username, true);
 
 			/**
 			 * Authenticate the user using password authentication
