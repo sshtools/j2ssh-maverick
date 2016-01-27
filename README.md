@@ -1,12 +1,12 @@
 J2SSH Maverick
 ==============
 
-J2SSH Maverick is the successor to the original J2SSH API and includes a complete and stable implementation of an SSH2 client. Originally built from the ground up by the original author back in 2003, this product has, until now, only been available under a commercial license. With the development and pending release of a third generation SSH API, this legacy API has now been released under the GPLv3 and will continue to be maintained by the core author as a contribution to the open source community.
+J2SSH Maverick is the successor to the original J2SSH API and includes a complete and stable implementation of an SSH2 client. Originally built from the ground up by the original author back in 2003, this product has, until now, only been available under a commercial license. With the development and pending release of a third generation SSH API, this legacy API has now been released under the LGPL v3 and will continue to be maintained by the core author as a contribution to the open source community.
 
 License
 -------
 
-This project is licensed strictly under the GPLv3. You are required to comply with these terms and as such does not allow inclusion in commercial redistributable projects unless the terms of the GPLv3 are fully complied with (i.e. your code is also distributed under the GPLv3 too). 
+**NEW** This project is now licensed under the LGPL v3 making it available to both commercial and open source applications. 
 
 Maven Repository
 ----------------
