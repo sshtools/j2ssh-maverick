@@ -104,7 +104,7 @@ public class X509Connect {
 			 * Connect to the host
 			 */
 			final SshClient ssh = con.connect(new SocketTransport(hostname,
-					port), username);
+					port), username, true);
 			System.out.println(ssh.toString());
 
 			String[] methods = ((Ssh2Client) ssh)
