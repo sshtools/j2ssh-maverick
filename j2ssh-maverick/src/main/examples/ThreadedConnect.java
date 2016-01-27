@@ -96,7 +96,7 @@ public class ThreadedConnect {
 			 * Connect to the host
 			 */
 			final SshClient ssh = con.connect(new SocketTransport(hostname,
-					port), username);
+					port), username, true);
 
 			/**
 			 * Authenticate the user using password authentication
