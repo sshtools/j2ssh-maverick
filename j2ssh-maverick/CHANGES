@@ -6,7 +6,7 @@ J2SSH Maverick 1.5.2 - Aug 15, 2015
 
 Features
 	o Added SimpleLogger implementation.
-    o Added Dynamic Port Forwarding.
+        o Added Dynamic Port Forwarding.
 	o Prepared pom.xml for maven central via Nexus.
 	
 =================
