@@ -101,7 +101,7 @@ public class KBIConnect {
 			 * Connect to the host
 			 */
 			Ssh2Client ssh = con.connect(new SocketTransport(hostname, port),
-					username);
+					username, true);
 
 			/**
 			 * Display the available authentication methods
