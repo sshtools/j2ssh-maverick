@@ -31,7 +31,7 @@ https://sourceforge.net/projects/javassh/
 Documentation
 -------------
 
-You can find javadocs at https://www.sshtools.com/gpl-javadocs
+You can find javadocs at http://j2ssh-maverick-javadocs.s3-website-eu-west-1.amazonaws.com
 
 Examples are included in the binary download or in the src/main/examples folder of the source tree.
 
