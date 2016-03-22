@@ -31,6 +31,7 @@ import com.sshtools.ssh.SshException;
 import com.sshtools.ssh.SshIOException;
 import com.sshtools.ssh.components.ComponentManager;
 import com.sshtools.ssh.components.SshCipher;
+import com.sshtools.ssh.components.jce.AES128Cbc;
 import com.sshtools.util.Base64;
 
 class PEMWriter extends PEM {
@@ -123,8 +124,7 @@ class PEMWriter extends PEM {
 
 			byte[] keydata = getKeyFromPassphrase(passphrase, iv, 16);
 
-			SshCipher cipher = (SshCipher) ComponentManager.getInstance()
-					.supportedSsh2CiphersCS().getInstance("aes128-cbc");
+			SshCipher cipher = new AES128Cbc();
 			cipher.init(SshCipher.ENCRYPT_MODE, iv, keydata);
 
 			int padding = cipher.getBlockSize()

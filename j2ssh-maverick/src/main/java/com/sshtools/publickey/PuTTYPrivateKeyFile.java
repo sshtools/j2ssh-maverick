@@ -32,6 +32,8 @@ import com.sshtools.ssh.components.Digest;
 import com.sshtools.ssh.components.SshCipher;
 import com.sshtools.ssh.components.SshDsaPublicKey;
 import com.sshtools.ssh.components.SshKeyPair;
+import com.sshtools.ssh.components.jce.AES256Cbc;
+import com.sshtools.ssh.components.jce.SHA1Digest;
 import com.sshtools.util.Base64;
 import com.sshtools.util.ByteArrayReader;
 
@@ -177,18 +179,12 @@ class PuTTYPrivateKeyFile implements SshPrivateKeyFile {
 										byte[] blob = Base64.decode(privatekey);
 
 										if (encryption.equals("aes256-cbc")) {
-											SshCipher cipher = (SshCipher) ComponentManager
-													.getInstance()
-													.supportedSsh2CiphersCS()
-													.getInstance(encryption);
+											SshCipher cipher = new AES256Cbc();
 
 											byte[] iv = new byte[40];
 											byte[] key = new byte[40];
 
-											Digest hash = (Digest) ComponentManager
-													.getInstance()
-													.supportedDigests()
-													.getInstance("SHA-1");
+											Digest hash = new SHA1Digest();
 											hash.putInt(0);
 											hash.putBytes(passphrase.getBytes());
 											byte[] key1 = hash.doFinal();
