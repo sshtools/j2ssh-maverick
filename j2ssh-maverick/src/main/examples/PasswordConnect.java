@@ -27,6 +27,7 @@ import com.sshtools.logging.LoggerFactory;
 import com.sshtools.logging.LoggerLevel;
 import com.sshtools.logging.SimpleLogger;
 import com.sshtools.net.SocketTransport;
+import com.sshtools.publickey.ConsoleKnownHostsKeyVerification;
 import com.sshtools.ssh.PasswordAuthentication;
 import com.sshtools.ssh.PseudoTerminalModes;
 import com.sshtools.ssh.SshAuthentication;
@@ -74,6 +75,7 @@ public class PasswordConnect {
 			 */
 			SshConnector con = SshConnector.createInstance();
 
+			con.getContext().setHostKeyVerification(new ConsoleKnownHostsKeyVerification());
 			/**
 			 * Connect to the host
 			 */

@@ -130,12 +130,20 @@ public final class Ssh2Context implements SshContext {
 
 	public static final String KEX_DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA256 = "diffie-hellman-group-exchange-sha256";
 
+	public static final String KEX_DIFFIE_HELLMAN_ECDH_NISTP_256 = "ecdh-sha2-nistp256";
+	public static final String KEX_DIFFIE_HELLMAN_ECDH_NISTP_384 = "ecdh-sha2-nistp384";
+	public static final String KEX_DIFFIE_HELLMAN_ECDH_NISTP_521 = "ecdh-sha2-nistp521";
+	
 	/** SSH2 DSA Public Key **/
 	public static final String PUBLIC_KEY_SSHDSS = "ssh-dss";
 
 	/** SSH2 RSA Public Key **/
 	public static final String PUBLIC_KEY_SSHRSA = "ssh-rsa";
 
+	public static final String PUBLIC_KEY_ECDSA_256 = "ecdsa-sha2-nistp256";
+	public static final String PUBLIC_KEY_ECDSA_384 = "ecdsa-sha2-nistp384";
+	public static final String PUBLIC_KEY_ECDSA_521 = "ecdsa-sha2-nistp521";
+	
 	String prefCipherCS = CIPHER_AES128_CTR;
 	String prefCipherSC = CIPHER_AES128_CTR;
 
@@ -145,8 +153,8 @@ public final class Ssh2Context implements SshContext {
 	String prefCompressionCS = COMPRESSION_NONE;
 	String prefCompressionSC = COMPRESSION_NONE;
 
-	String prefKeyExchange = KEX_DIFFIE_HELLMAN_GROUP1_SHA1;
-	String prefPublicKey = PUBLIC_KEY_SSHDSS;
+	String prefKeyExchange = KEX_DIFFIE_HELLMAN_ECDH_NISTP_256;
+	String prefPublicKey = PUBLIC_KEY_ECDSA_256;
 
 	String sftpProvider = "/usr/libexec/sftp-server";
 
@@ -171,7 +179,7 @@ public final class Ssh2Context implements SshContext {
 	boolean sendIgnorePacketOnIdle = false;
 
 	int dhGroupExchangeKeySize = 1024;
-	boolean dhGroupExchangeBackwardCompatible = true;
+	boolean dhGroupExchangeBackwardCompatible = false;
 
 	int socketTimeout = 0;
 	SshConnector con;

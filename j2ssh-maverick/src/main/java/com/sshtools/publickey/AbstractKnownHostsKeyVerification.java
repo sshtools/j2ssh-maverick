@@ -28,6 +28,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -56,8 +57,8 @@ import com.sshtools.util.Base64;
 public abstract class AbstractKnownHostsKeyVerification implements
 		HostKeyVerification {
 
-	private Hashtable<String, Hashtable<String, SshPublicKey>> allowedHosts = new Hashtable<String, Hashtable<String, SshPublicKey>>();
-	private Hashtable<String, Hashtable<String, SshPublicKey>> temporaryHosts = new Hashtable<String, Hashtable<String, SshPublicKey>>();
+	private Hashtable<String,Hashtable<String,SshPublicKey>> allowedHosts = new Hashtable<String,Hashtable<String,SshPublicKey>>();
+	private Hashtable<String,Hashtable<String,SshPublicKey>> temporaryHosts = new Hashtable<String,Hashtable<String,SshPublicKey>>();
 	private String knownhosts;
 	private boolean hostFileWriteable;
 	private boolean hashHosts = true;
@@ -142,28 +143,59 @@ public abstract class AbstractKnownHostsKeyVerification implements
 						}
 
 						String host = (String) tokens.nextElement();
-
-						if (!tokens.hasMoreTokens()) {
-							// Do not fail just tell the implementation to
-							// allow it to decide what to do.
-							onInvalidHostEntry(line);
-							continue;
-						}
-						String key = (String) tokens.nextElement();
-
+						String algorithm = null;
 						try {
-							SshPublicKey pk = SshPublicKeyFileFactory
-									.decodeSSH2PublicKey(Base64.decode(key));
+							if (!tokens.hasMoreTokens()) {
+								// Do not fail just tell the implementation to
+								// allow it to decide what to do.
+								onInvalidHostEntry(line);
+								continue;
+							}
 
-							putAllowedKey(host, pk, true);
-						} catch (IOException ex2) {
-							onInvalidHostEntry(line);
-						} catch (OutOfMemoryError oex) {
+							Integer.parseInt(algorithm = (String) tokens
+									.nextElement());
+
+
+							// Do not support SSH1 keys
+
+						} catch (OutOfMemoryError ox) {
 							reader.close();
 							throw new SshException(
 									"Error parsing known_hosts file, is your file corrupt? "
 											+ knownhostsFile.getAbsolutePath(),
 									SshException.POSSIBLE_CORRUPT_FILE);
+						} catch (NumberFormatException ex) {
+							if (!tokens.hasMoreTokens()) {
+								// Do not fail just tell the implementation to
+								// allow it to decide what to do.
+								onInvalidHostEntry(line);
+								continue;
+							}
+							String key = (String) tokens.nextElement();
+
+							try {
+								SshPublicKey pk;
+								if (algorithm != null) {
+									pk = SshPublicKeyFileFactory
+											.decodeSSH2PublicKey(algorithm,
+													Base64.decode(key));
+								} else {
+									pk = SshPublicKeyFileFactory
+											.decodeSSH2PublicKey(Base64
+													.decode(key));
+								}
+
+								putAllowedKey(host, pk, true);
+							} catch (IOException ex2) {
+								onInvalidHostEntry(line);
+							} catch (OutOfMemoryError oex) {
+								reader.close();
+								throw new SshException(
+										"Error parsing known_hosts file, is your file corrupt? "
+												+ knownhostsFile
+														.getAbsolutePath(),
+										SshException.POSSIBLE_CORRUPT_FILE);
+							}
 						}
 					}
 
@@ -327,11 +359,11 @@ public abstract class AbstractKnownHostsKeyVerification implements
 	 * of the public key alogorithm name and the public key as the value.
 	 * </p>
 	 * 
-	 * @return the allowed hosts
+	 * @return Hashtable<String,Hashtable<String,SshPublicKey>>
 	 * 
 	 * @since 0.2.0
 	 */
-	public Hashtable<String, Hashtable<String, SshPublicKey>> allowedHosts() {
+	public Hashtable<String,Hashtable<String,SshPublicKey>> allowedHosts() {
 		return allowedHosts;
 	}
 
@@ -443,7 +475,7 @@ public abstract class AbstractKnownHostsKeyVerification implements
 
 		for (Enumeration<String> e = temporaryHosts.keys(); e.hasMoreElements();) {
 			// Could be a comma delimited string of names/ip addresses
-			String names = (String) e.nextElement();
+			String names = e.nextElement();
 
 			if (names.startsWith(HASH_MAGIC)) {
 				// Create hash
@@ -473,9 +505,9 @@ public abstract class AbstractKnownHostsKeyVerification implements
 			}
 		}
 		// The host is unknown os ask the user
-		if (!validateUnknown)
+		if(!validateUnknown)
 			return false;
-
+		
 		onUnknownHost(host, pk);
 
 		// Recheck ans return the result
@@ -531,17 +563,14 @@ public abstract class AbstractKnownHostsKeyVerification implements
 		return false;
 	}
 
-	private synchronized SshPublicKey getAllowedKey(String names,
-			String algorithm) {
+	private synchronized SshPublicKey getAllowedKey(String names, String algorithm) {
 
 		try {
-			for (Iterator<String> it = temporaryHosts.keySet().iterator(); it
-					.hasNext();) {
-				String name = (String) it.next();
+			for (Iterator<String> it = temporaryHosts.keySet().iterator(); it.hasNext();) {
+				String name = it.next();
 				if (name.startsWith(HASH_DELIM)) {
 					if (checkHash(name, names)) {
-						Hashtable<String, SshPublicKey> map = temporaryHosts
-								.get(name);
+						Hashtable<String,SshPublicKey> map = temporaryHosts.get(name);
 						return (SshPublicKey) map.get(algorithm);
 					}
 				}
@@ -551,18 +580,16 @@ public abstract class AbstractKnownHostsKeyVerification implements
 		}
 
 		if (temporaryHosts.containsKey(names)) {
-			Hashtable<String, SshPublicKey> map = temporaryHosts.get(names);
+			Hashtable<String,SshPublicKey> map = temporaryHosts.get(names);
 			return (SshPublicKey) map.get(algorithm);
 		}
 
 		try {
-			for (Iterator<String> it = allowedHosts.keySet().iterator(); it
-					.hasNext();) {
+			for (Iterator<String> it = allowedHosts.keySet().iterator(); it.hasNext();) {
 				String name = (String) it.next();
 				if (name.startsWith(HASH_DELIM)) {
 					if (checkHash(name, names)) {
-						Hashtable<String, SshPublicKey> map = allowedHosts
-								.get(name);
+						Hashtable<String,SshPublicKey> map = allowedHosts.get(name);
 						return (SshPublicKey) map.get(algorithm);
 					}
 				}
@@ -571,28 +598,27 @@ public abstract class AbstractKnownHostsKeyVerification implements
 
 		}
 		if (allowedHosts.containsKey(names)) {
-			Hashtable<String, SshPublicKey> map = allowedHosts.get(names);
+			Hashtable<String,SshPublicKey> map = allowedHosts.get(names);
 			return (SshPublicKey) map.get(algorithm);
 		}
 		return null;
 	}
 
-	private synchronized void putAllowedKey(String host, SshPublicKey key,
-			boolean always) {
+	private synchronized void putAllowedKey(String host, SshPublicKey key, boolean always) {
 
 		if (always) {
 			if (!allowedHosts.containsKey(host)) {
-				allowedHosts.put(host, new Hashtable<String, SshPublicKey>());
+				allowedHosts.put(host, new Hashtable<String,SshPublicKey>());
 			}
 
-			Hashtable<String, SshPublicKey> keys = allowedHosts.get(host);
+			Hashtable<String,SshPublicKey> keys = allowedHosts.get(host);
 			keys.put(key.getAlgorithm(), key);
 		} else {
 			if (!temporaryHosts.containsKey(host)) {
-				temporaryHosts.put(host, new Hashtable<String, SshPublicKey>());
+				temporaryHosts.put(host, new Hashtable<String,SshPublicKey>());
 			}
 
-			Hashtable<String, SshPublicKey> keys = temporaryHosts.get(host);
+			Hashtable<String,SshPublicKey> keys = temporaryHosts.get(host);
 			keys.put(key.getAlgorithm(), key);
 		}
 	}
@@ -649,12 +675,12 @@ public abstract class AbstractKnownHostsKeyVerification implements
 
 		for (Enumeration<String> e = allowedHosts.keys(); e.hasMoreElements();) {
 
-			String host = (String) e.nextElement();
-			Hashtable<String, SshPublicKey> table = allowedHosts.get(host);
+			String host = e.nextElement();
+			Hashtable<String,SshPublicKey> table = allowedHosts.get(host);
 
 			for (Enumeration<String> e2 = table.keys(); e2.hasMoreElements();) {
 
-				String type = (String) e2.nextElement();
+				String type = e2.nextElement();
 
 				SshPublicKey pk = (SshPublicKey) table.get(type);
 				if (pk instanceof SshRsaPublicKey

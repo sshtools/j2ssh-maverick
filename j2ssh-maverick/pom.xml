@@ -36,7 +36,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.sshtools</groupId>
 	<artifactId>j2ssh-maverick</artifactId>
-	<version>1.5.3</version>
+	<version>1.5.4</version>
 	<name>J2SSH Maverick</name>
 	<description>Open source SSH2 API</description>
     <url>http://www.sshtools.com</url>
@@ -76,6 +76,11 @@
 			<groupId>com.jcraft</groupId>
 			<artifactId>jzlib</artifactId>
 			<version>1.1.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<version>1.52</version>
 		</dependency>
 
 	</dependencies>
