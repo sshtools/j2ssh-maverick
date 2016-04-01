@@ -378,6 +378,10 @@ public class JCEComponentManager extends ComponentManager implements
 				keyexchange.add("diffie-hellman-group-exchange-sha256",
 						DiffieHellmanGroupExchangeSha256);
 			}
+			
+			keyexchange.add("ecdh-sha2-nistp256", DiffieHellmanEcdhNistp256.class);
+			keyexchange.add("ecdh-sha2-nistp384", DiffieHellmanEcdhNistp384.class);
+			keyexchange.add("ecdh-sha2-nistp521", DiffieHellmanEcdhNistp521.class);
 
 		} catch (ClassNotFoundException e) {
 			// This is expected for SSHD
@@ -387,12 +391,21 @@ public class JCEComponentManager extends ComponentManager implements
 	protected void initializePublicKeyFactory(ComponentFactory publickeys) {
 		publickeys.add("ssh-dss", Ssh2DsaPublicKey.class);
 		publickeys.add("ssh-rsa", Ssh2RsaPublicKey.class);
+		
 		publickeys.add(SshX509RsaPublicKey.X509V3_SIGN_RSA,
 				SshX509RsaPublicKey.class);
 		publickeys.add(SshX509DsaPublicKey.X509V3_SIGN_DSA,
 				SshX509DsaPublicKey.class);
 		publickeys.add(SshX509RsaSha1PublicKey.X509V3_SIGN_RSA_SHA1,
 				SshX509RsaSha1PublicKey.class);
+		
+		publickeys.add("ecdsa-sha2-nistp256",
+				Ssh2EcdsaSha2Nist256PublicKey.class);
+		publickeys.add("ecdsa-sha2-nistp384",
+				Ssh2EcdsaSha2Nist384PublicKey.class);
+		publickeys.add("ecdsa-sha2-nistp521",
+				Ssh2EcdsaSha2Nist521PublicKey.class);
+		
 	}
 
 	protected void initializeSsh2CipherFactory(ComponentFactory ciphers) {

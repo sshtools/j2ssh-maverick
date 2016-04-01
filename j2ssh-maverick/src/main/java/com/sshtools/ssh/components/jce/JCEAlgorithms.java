@@ -79,4 +79,8 @@ public interface JCEAlgorithms {
 	/** ARCFOUR cipher **/
 	public static final String JCE_ARCFOUR = "ARCFOUR";
 
+	/** Elliptic Curve **/
+	public static final String JCE_EC = "EC";
+	
+	public static final String JCE_ECDH = "ECDH";
 }

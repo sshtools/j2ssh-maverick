@@ -30,6 +30,8 @@ import com.sshtools.ssh.SshException;
 import com.sshtools.ssh.SshIOException;
 import com.sshtools.ssh.components.ComponentManager;
 import com.sshtools.ssh.components.SshCipher;
+import com.sshtools.ssh.components.jce.AES128Cbc;
+import com.sshtools.ssh.components.jce.TripleDesCbc;
 import com.sshtools.util.Base64;
 
 class PEMReader extends PEM {
@@ -186,12 +188,10 @@ class PEMReader extends PEM {
 
 				if ("DES-EDE3-CBC".equalsIgnoreCase(keyAlgorithm)) {
 					keydata = getKeyFromPassphrase(passphrase, iv, 24);
-					cipher = (SshCipher) ComponentManager.getInstance()
-							.supportedSsh2CiphersCS().getInstance("3des-cbc");
+					cipher = new TripleDesCbc();
 				} else if ("AES-128-CBC".equalsIgnoreCase(keyAlgorithm)) {
 					keydata = getKeyFromPassphrase(passphrase, iv, 16);
-					cipher = (SshCipher) ComponentManager.getInstance()
-							.supportedSsh2CiphersCS().getInstance("aes128-cbc");
+					cipher = new AES128Cbc();
 				}
 
 				cipher.init(SshCipher.DECRYPT_MODE, iv, keydata);

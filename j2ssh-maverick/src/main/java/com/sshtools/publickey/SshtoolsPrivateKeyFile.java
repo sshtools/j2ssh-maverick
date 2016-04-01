@@ -34,6 +34,7 @@ import com.sshtools.ssh.components.SshDsaPublicKey;
 import com.sshtools.ssh.components.SshKeyPair;
 import com.sshtools.ssh.components.SshRsaPrivateKey;
 import com.sshtools.ssh.components.SshRsaPublicKey;
+import com.sshtools.ssh.components.jce.TripleDesCbc;
 import com.sshtools.util.ByteArrayReader;
 import com.sshtools.util.ByteArrayWriter;
 
@@ -155,9 +156,7 @@ class SshtoolsPrivateKeyFile extends Base64EncodedFileFormat implements
 
 					ComponentManager.getInstance().getRND().nextBytes(iv);
 
-					SshCipher cipher = (SshCipher) ComponentManager
-							.getInstance().supportedSsh2CiphersCS()
-							.getInstance("3des-cbc");
+					SshCipher cipher = new TripleDesCbc();
 					cipher.init(SshCipher.ENCRYPT_MODE, iv, keydata);
 
 					ByteArrayWriter data = new ByteArrayWriter();
@@ -232,8 +231,7 @@ class SshtoolsPrivateKeyFile extends Base64EncodedFileFormat implements
 
 				decryptedkey = bar.readBinaryString();
 
-				SshCipher cipher = (SshCipher) ComponentManager.getInstance()
-						.supportedSsh2CiphersCS().getInstance("3des-cbc");
+				SshCipher cipher = new TripleDesCbc();
 				cipher.init(SshCipher.DECRYPT_MODE, iv, keydata);
 
 				cipher.transform(decryptedkey, 0, decryptedkey, 0,

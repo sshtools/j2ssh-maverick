@@ -2,15 +2,26 @@
 =  CHANGE LOG   =
 =================
 
+J2SSH Maverick 1.5.4 - Apr 1, 2016
+
+Features
+	o Added ECDSA public key implementations ecdsa-sha2-nistp256, ecdsa-sha2-nistp384. ecdsa-sha2-nistp521
+	o Added EC Diffie Hellman key exchange implementations ecdh-sha2-nistp256, ecdh-sha2-nistp384, ecdh-sha2-nistp521
+	
+Bug Fixes
+	o Deprecated CBC ciphers caused private key encryption/decryption to fail due to ciphers being missing from CompomentFactory. We now use ciphers directly to avoid conflicts with SSH configuration preferences.
+	
+=================
+=  HISTORY      =
+=================
+
 J2SSH Maverick 1.5.3 - Jan 27, 2016
 
 Features
 	o Update examples to use threaded-mode clients to prevent confusion for new users expecting event type behavior from default single threaded mode.
 	o Deprecated CBC and ArcFour ciphers.
 	
-=================
-=  HISTORY      =
-=================
+-----------------
 
 J2SSH Maverick 1.5.2 - Aug 15, 2015
 

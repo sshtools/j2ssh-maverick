@@ -31,6 +31,7 @@ import com.sshtools.ssh.components.Digest;
 import com.sshtools.ssh.components.SshCipher;
 import com.sshtools.ssh.components.SshDsaPublicKey;
 import com.sshtools.ssh.components.SshKeyPair;
+import com.sshtools.ssh.components.jce.TripleDesCbc;
 import com.sshtools.util.ByteArrayReader;
 import com.sshtools.util.ByteArrayWriter;
 
@@ -109,28 +110,25 @@ class SSHCOMPrivateKeyFile extends Base64EncodedFileFormat implements
 			String cipher = bar.readString();
 			byte[] blob = bar.readBinaryString();
 
-			try {
-				if (!cipher.equals("none")) {
-					if (!cipher.equals("3des-cbc")) {
-						throw new IOException("Unsupported cipher type "
-								+ cipher + " in ssh.com private key");
-					}
-
-					SshCipher c = (SshCipher) ComponentManager.getInstance()
-							.supportedSsh2CiphersCS().getInstance("3des-cbc");
-
-					byte[] iv = new byte[32];
-					byte[] keydata = makePassphraseKey(passphrase);
-
-					c.init(SshCipher.DECRYPT_MODE, iv, keydata);
-
-					c.transform(blob);
-					wasEncrypted = true;
-
+		
+			if (!cipher.equals("none")) {
+				if (!cipher.equals("3des-cbc")) {
+					throw new IOException("Unsupported cipher type "
+							+ cipher + " in ssh.com private key");
 				}
-			} catch (SshException e1) {
-				throw new SshIOException(e1);
+
+				SshCipher c = new TripleDesCbc();
+
+				byte[] iv = new byte[32];
+				byte[] keydata = makePassphraseKey(passphrase);
+
+				c.init(SshCipher.DECRYPT_MODE, iv, keydata);
+
+				c.transform(blob);
+				wasEncrypted = true;
+
 			}
+
 
 			ByteArrayReader data = new ByteArrayReader(blob, 4, blob.length - 4);
 

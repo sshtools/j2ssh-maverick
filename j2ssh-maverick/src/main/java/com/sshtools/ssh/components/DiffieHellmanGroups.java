@@ -21,12 +21,15 @@
 package com.sshtools.ssh.components;
 
 import java.math.BigInteger;
-import java.util.Hashtable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import com.sshtools.util.UnsignedInteger32;
 
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class DiffieHellmanGroups {
-
+	
 	public static final BigInteger group1 = new BigInteger(
 			"FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"
 					+ "29024E088A67CC74020BBEA63B139B22514A08798E3404DD"
@@ -207,17 +210,16 @@ public class DiffieHellmanGroups {
 			+ "80B96E71" + "60C980DD" + "98EDD3DF" + "FFFFFFFF" + "FFFFFFFF",
 			16);
 
-	static Hashtable safePrimes = new Hashtable();
+	static List<BigInteger> safePrimes = new ArrayList<BigInteger>();
 
 	static {
-		safePrimes.put("0",
-				new Object[] { new Long(group1.bitLength()), group1 });
-		safePrimes.put("1", group5);
-		safePrimes.put("2", group14);
-		safePrimes.put("3", group15);
-		safePrimes.put("4", group16);
-		safePrimes.put("5", group17);
-		safePrimes.put("6", group18);
+		safePrimes.add(group1);
+		safePrimes.add(group5);
+		safePrimes.add(group14);
+		safePrimes.add(group15);
+		safePrimes.add(group16);
+		safePrimes.add(group17);
+		safePrimes.add(group18);
 	}
 
 	/**
@@ -227,16 +229,18 @@ public class DiffieHellmanGroups {
 	 * @return BigInteger
 	 */
 	public static BigInteger getSafePrime(UnsignedInteger32 maximumSize) {
-		int i = 0;
-		while (((Long) (((Object[]) safePrimes.get("" + i))[0])).longValue() > maximumSize
-				.longValue()) {
-			i++;
-			if (i == safePrimes.size()) {
-				i--;
+
+		BigInteger prime = group1;
+		for(Iterator<BigInteger> it = safePrimes.iterator(); it.hasNext(); ) {
+			BigInteger p = it.next();
+			int len = p.bitLength();
+			if(len > maximumSize.intValue()) {
 				break;
 			}
+			prime = p;
 		}
-		return (BigInteger) (((Object[]) safePrimes.get("" + i))[1]);
+		
+		return prime;
 	}
 
 }
