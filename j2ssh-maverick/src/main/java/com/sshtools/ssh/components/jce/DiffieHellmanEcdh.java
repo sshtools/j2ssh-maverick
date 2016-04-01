@@ -9,7 +9,6 @@ import java.security.spec.ECGenParameterSpec;
 
 import javax.crypto.KeyAgreement;
 
-import com.sshtools.logging.Logger;
 import com.sshtools.logging.LoggerFactory;
 import com.sshtools.logging.LoggerLevel;
 import com.sshtools.ssh.SshException;

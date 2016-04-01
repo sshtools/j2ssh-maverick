@@ -27,7 +27,6 @@ import java.util.List;
 
 import com.sshtools.util.UnsignedInteger32;
 
-@SuppressWarnings({ "unchecked", "rawtypes" })
 public class DiffieHellmanGroups {
 	
 	public static final BigInteger group1 = new BigInteger(
