@@ -26,7 +26,7 @@ Binary Builds
 
 Binary builds are available on SourceForge.net at the URL below.
 
-https://sourceforge.net/projects/javassh/
+https://sourceforge.net/projects/sshtools/
 
 Documentation
 -------------
