@@ -312,6 +312,12 @@ public class JCEComponentManager extends ComponentManager implements
 
 		if (testDigest("SHA-256", SHA256Digest.class))
 			digests.add("SHA-256", SHA256Digest.class);
+		
+		if (testDigest("SHA-384", SHA384Digest.class))
+			digests.add("SHA-384", SHA384Digest.class);
+		
+		if (testDigest("SHA-512", SHA512Digest.class))
+			digests.add("SHA-512", SHA512Digest.class);
 	}
 
 	protected void initializeHmacFactory(ComponentFactory hmacs) {
@@ -334,10 +340,10 @@ public class JCEComponentManager extends ComponentManager implements
 			hmacs.add("hmac-sha256@ssh.com", HmacSha256.class);
 		}
 
-		// if(testHMac("hmac-sha512", HmacSha512.class)) {
-		// hmacs.add("hmac-sha512", HmacSha512.class);
-		// hmacs.add("hmac-sha512@ssh.com", HmacSha512.class);
-		// }
+		 if(testHMac("hmac-sha512", HmacSha512.class)) {
+			 hmacs.add("hmac-sha512", HmacSha512.class);
+			 hmacs.add("hmac-sha512@ssh.com", HmacSha512.class);
+		 }
 
 	}
 
@@ -381,7 +387,7 @@ public class JCEComponentManager extends ComponentManager implements
 			
 			keyexchange.add("ecdh-sha2-nistp256", DiffieHellmanEcdhNistp256.class);
 			keyexchange.add("ecdh-sha2-nistp384", DiffieHellmanEcdhNistp384.class);
-			keyexchange.add("ecdh-sha2-nistp521", DiffieHellmanEcdhNistp521.class);
+//			keyexchange.add("ecdh-sha2-nistp521", DiffieHellmanEcdhNistp521.class);
 
 		} catch (ClassNotFoundException e) {
 			// This is expected for SSHD

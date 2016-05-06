@@ -38,26 +38,22 @@ public class HmacSha512 extends AbstractHmac {
 	}
 
 	public String getAlgorithm() {
-		return "hmac-sha512";
+		return "hmac-sha2-512";
 	}
 
 	public void init(byte[] keydata) throws SshException {
-		try {
-			mac = JCEProvider.getProviderForAlgorithm(jceAlgorithm) == null ? Mac
-					.getInstance(jceAlgorithm) : Mac.getInstance(jceAlgorithm,
-					JCEProvider.getProviderForAlgorithm(jceAlgorithm));
+        try {
+            mac = JCEProvider.getProviderForAlgorithm(jceAlgorithm)==null ? Mac.getInstance(jceAlgorithm) : Mac.getInstance(jceAlgorithm, JCEProvider.getProviderForAlgorithm(jceAlgorithm));
 
-			// Create a key of 16 bytes
-			byte[] key = new byte[System.getProperty(
-					"miscomputes.ssh2.hmac.keys", "false").equalsIgnoreCase(
-					"true") ? 16 : 32];
-			System.arraycopy(keydata, 0, key, 0, key.length);
+            // Create a key of 16 bytes
+            byte[] key = new byte[64];
+            System.arraycopy(keydata, 0, key, 0, key.length);
 
-			SecretKeySpec keyspec = new SecretKeySpec(key, jceAlgorithm);
-			mac.init(keyspec);
-		} catch (Throwable t) {
-			throw new SshException(t);
-		}
+            SecretKeySpec keyspec = new SecretKeySpec(key, jceAlgorithm);
+            mac.init(keyspec);
+        } catch (Throwable t) {
+            throw new SshException(t);
+        }
 	}
 
 }

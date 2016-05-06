@@ -77,7 +77,7 @@ public class DiffieHellmanEcdh extends SshKeyExchangeClient implements
 	    this.serverKexInit = serverKexInit;
 		
 		try {
-			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDH");
+			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("EC");
 			ECGenParameterSpec namedSpec = new ECGenParameterSpec(curve);
 			keyGen.initialize(namedSpec, new SecureRandom());
 

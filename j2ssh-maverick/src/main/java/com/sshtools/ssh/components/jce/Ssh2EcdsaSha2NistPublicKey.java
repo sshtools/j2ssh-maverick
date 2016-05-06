@@ -54,15 +54,15 @@ public class Ssh2EcdsaSha2NistPublicKey implements SshPublicKey {
 		if (curve.contains("prime256v1") || curve.contains("secp256r1")) {
 			this.curve = "secp256r1";
 			this.name = "ecdsa-sha2-nistp256";
-			this.spec = "SHA256/ECDSA";
+			this.spec = "SHA256withECDSA";
 		} else if (curve.contains("secp384r1")) {
 			this.curve = "secp384r1";
 			this.name = "ecdsa-sha2-nistp384";
-			this.spec = "SHA384/ECDSA";
+			this.spec = "SHA384withECDSA";
 		} else if (curve.contains("secp521r1")) {
 			this.curve = "secp521r1";
 			this.name = "ecdsa-sha2-nistp521";
-			this.spec = "SHA512/ECDSA";
+			this.spec = "SHA512withECDSA";
 		} else {
 			throw new IOException("Unsupported curve name " + curve);
 		}
@@ -121,7 +121,6 @@ public class Ssh2EcdsaSha2NistPublicKey implements SshPublicKey {
 		ByteArrayWriter blob = new ByteArrayWriter();
 
 		try {
-
 			blob.writeString(name);
 			blob.writeString(name.substring(name.lastIndexOf("-") + 1));
 			blob.writeBinaryString(getPublicOctet());
