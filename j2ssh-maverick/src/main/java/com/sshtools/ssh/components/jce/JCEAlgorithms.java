@@ -44,8 +44,12 @@ public interface JCEAlgorithms {
 	public static final String JCE_MD5 = "MD5";
 	/** SHA1 digest algorithm 'SHA-1' **/
 	public static final String JCE_SHA1 = "SHA-1";
+	/** SHA384 digest algorithm 'SHA-384' **/
+	public static final String JCE_SHA384 = "SHA-384";
 	/** SHA256 digest algorithm 'SHA-256' **/
 	public static final String JCE_SHA256 = "SHA-256";
+	/** SHA512 digest algorithm 'SHA-512' **/
+	public static final String JCE_SHA512 = "SHA-512";
 	/** AES encryption algorithm 'AES/CBC/NoPadding' **/
 	public static final String JCE_AESCBCNOPADDING = "AES/CBC/NoPadding";
 	/** Blowfish encryption algorithm 'Blowfish/CBC/NoPadding' **/

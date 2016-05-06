@@ -33,6 +33,7 @@ import com.sshtools.ssh.SshAuthentication;
 import com.sshtools.ssh.SshClient;
 import com.sshtools.ssh.SshConnector;
 import com.sshtools.ssh.SshSession;
+import com.sshtools.ssh2.Ssh2Context;
 
 /**
  * This example demonstrates password authentication.

@@ -2,6 +2,17 @@
 =  CHANGE LOG   =
 =================
 
+J2SSH Maverick 1.5.5 - May 6, 2016
+
+Bug Fixes
+	o Fixed issue with EC keys when Bouncycastle is not on the classpath.
+	o Removed Bouncycastle from dependencies as it was only required for EC keys which now should work with generic JCE interfaces.
+    o Removed ecdh-sha2-nistp521 temporarily as it's failing.
+
+=================
+=  HISTORY      =
+=================
+
 J2SSH Maverick 1.5.4 - Apr 1, 2016
 
 Features
@@ -11,9 +22,7 @@ Features
 Bug Fixes
 	o Deprecated CBC ciphers caused private key encryption/decryption to fail due to ciphers being missing from CompomentFactory. We now use ciphers directly to avoid conflicts with SSH configuration preferences.
 	
-=================
-=  HISTORY      =
-=================
+----------------
 
 J2SSH Maverick 1.5.3 - Jan 27, 2016
 
