@@ -324,8 +324,8 @@ public class Ssh2Session extends Ssh2Channel implements SshSession {
 
 			request.writeInt(cols);
 			request.writeInt(rows);
-			request.writeInt(height);
 			request.writeInt(width);
+			request.writeInt(height);
 
 			sendRequest("window-change", false, request.toByteArray());
 		} catch (IOException ex) {

@@ -2,15 +2,23 @@
 =  CHANGE LOG   =
 =================
 
+J2SSH Maverick 1.5.6 - TBC
+
+Bug Fixes
+	o changeTerminalDimensions parameters for width and height are the wrong way around.
+    o Fix NPE in ForwardingClient.SocketListener.
+
+=================
+=  HISTORY      =
+=================
+
 J2SSH Maverick 1.5.5 - May 6, 2016
 
 Bug Fixes
 	o Fixed issue with EC keys when Bouncycastle is not on the classpath.
     o Removed ecdh-sha2-nistp521 temporarily as it's failing.
-
-=================
-=  HISTORY      =
-=================
+    
+------------------
 
 J2SSH Maverick 1.5.4 - Apr 1, 2016
 

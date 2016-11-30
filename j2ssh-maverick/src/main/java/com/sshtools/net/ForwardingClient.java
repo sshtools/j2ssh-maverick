@@ -1461,6 +1461,7 @@ public class ForwardingClient implements Client {
 			} finally {
 				stop();
 				thread = null;
+				server = null;
 			}
 		}
 
@@ -1503,7 +1504,7 @@ public class ForwardingClient implements Client {
 				}
 			} catch (IOException ioe) {
 			}
-			server = null;
+			
 			listening = false;
 		}
 	}
