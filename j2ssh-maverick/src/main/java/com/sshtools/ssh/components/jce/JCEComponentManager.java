@@ -15,7 +15,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with J2SSH Maverick.  If not, see <http://www.gnu.org/licenses/>.
  */
 package com.sshtools.ssh.components.jce;
@@ -348,62 +348,42 @@ public class JCEComponentManager extends ComponentManager implements
 	}
 
 	protected void initializeKeyExchangeFactory(ComponentFactory keyexchange) {
-		// sshd has its own version of these classes so they will not be on its
-		// classpath, this is why we use class.forname
-		try {
-			Class<?> DiffieHellmanGroup14Sha1 = Class
-					.forName("com.sshtools.ssh.components.jce.DiffieHellmanGroup14Sha1");
-			Class<?> DiffieHellmanGroup1Sha1 = Class
-					.forName("com.sshtools.ssh.components.jce.DiffieHellmanGroup1Sha1");
-			Class<?> DiffieHellmanGroupExchangeSha1 = Class
-					.forName("com.sshtools.ssh.components.jce.DiffieHellmanGroupExchangeSha1");
-			Class<?> DiffieHellmanGroupExchangeSha256 = Class
-					.forName("com.sshtools.ssh.components.jce.DiffieHellmanGroupExchangeSha256");
+
 
 			if (testKeyExchangeAlgorithm("diffie-hellman-group14-sha1",
-					DiffieHellmanGroup14Sha1)) {
+					DiffieHellmanGroup14Sha1.class)) {
 				keyexchange.add("diffie-hellman-group14-sha1",
-						DiffieHellmanGroup14Sha1);
+						DiffieHellmanGroup14Sha1.class);
 			}
 
 			if (testKeyExchangeAlgorithm("diffie-hellman-group1-sha1",
-					DiffieHellmanGroup1Sha1)) {
+					DiffieHellmanGroup1Sha1.class)) {
 				keyexchange.add("diffie-hellman-group1-sha1",
-						DiffieHellmanGroup1Sha1);
+						DiffieHellmanGroup1Sha1.class);
 			}
 
 			if (testKeyExchangeAlgorithm("diffie-hellman-group-exchange-sha1",
-					DiffieHellmanGroupExchangeSha1)) {
+					DiffieHellmanGroupExchangeSha1.class)) {
 				keyexchange.add("diffie-hellman-group-exchange-sha1",
-						DiffieHellmanGroupExchangeSha1);
+						DiffieHellmanGroupExchangeSha1.class);
 			}
 
 			if (testKeyExchangeAlgorithm(
 					"diffie-hellman-group-exchange-sha256",
-					DiffieHellmanGroupExchangeSha256)) {
+					DiffieHellmanGroupExchangeSha256.class)) {
 				keyexchange.add("diffie-hellman-group-exchange-sha256",
-						DiffieHellmanGroupExchangeSha256);
+						DiffieHellmanGroupExchangeSha256.class);
 			}
 			
 			keyexchange.add("ecdh-sha2-nistp256", DiffieHellmanEcdhNistp256.class);
 			keyexchange.add("ecdh-sha2-nistp384", DiffieHellmanEcdhNistp384.class);
 //			keyexchange.add("ecdh-sha2-nistp521", DiffieHellmanEcdhNistp521.class);
 
-		} catch (ClassNotFoundException e) {
-			// This is expected for SSHD
-		}
 	}
 
 	protected void initializePublicKeyFactory(ComponentFactory publickeys) {
 		publickeys.add("ssh-dss", Ssh2DsaPublicKey.class);
 		publickeys.add("ssh-rsa", Ssh2RsaPublicKey.class);
-		
-		publickeys.add(SshX509RsaPublicKey.X509V3_SIGN_RSA,
-				SshX509RsaPublicKey.class);
-		publickeys.add(SshX509DsaPublicKey.X509V3_SIGN_DSA,
-				SshX509DsaPublicKey.class);
-		publickeys.add(SshX509RsaSha1PublicKey.X509V3_SIGN_RSA_SHA1,
-				SshX509RsaSha1PublicKey.class);
 		
 		publickeys.add("ecdsa-sha2-nistp256",
 				Ssh2EcdsaSha2Nist256PublicKey.class);
@@ -411,6 +391,35 @@ public class JCEComponentManager extends ComponentManager implements
 				Ssh2EcdsaSha2Nist384PublicKey.class);
 		publickeys.add("ecdsa-sha2-nistp521",
 				Ssh2EcdsaSha2Nist521PublicKey.class);
+		
+		publickeys.add(SshX509RsaPublicKey.X509V3_SIGN_RSA,
+				SshX509RsaPublicKey.class);
+		publickeys.add(SshX509DsaPublicKey.X509V3_SIGN_DSA,
+				SshX509DsaPublicKey.class);
+		publickeys.add(SshX509RsaSha1PublicKey.X509V3_SIGN_RSA_SHA1,
+				SshX509RsaSha1PublicKey.class);
+
+		publickeys.add(SshX509RsaPublicKeyRfc6187.X509V3_SSH_RSA,
+				SshX509RsaPublicKeyRfc6187.class);
+		publickeys.add(SshX509DsaPublicKeyRfc6187.X509V3_SSH_DSS,
+				SshX509DsaPublicKeyRfc6187.class);
+		
+		publickeys.add("x509v3-ecdsa-sha2-nistp256",
+				SshX509EcdsaSha2Nist256Rfc6187.class);
+		publickeys.add("x509v3-ecdsa-sha2-nistp384",
+				SshX509EcdsaSha2Nist384Rfc6187.class);
+		publickeys.add("x509v3-ecdsa-sha2-nistp521",
+				SshX509EcdsaSha2Nist521Rfc6187.class);
+		
+		publickeys.add("ecdsa-sha2-nistp256",
+				Ssh2EcdsaSha2Nist256PublicKey.class);
+		publickeys.add("ecdsa-sha2-nistp384",
+				Ssh2EcdsaSha2Nist384PublicKey.class);
+		publickeys.add("ecdsa-sha2-nistp521",
+				Ssh2EcdsaSha2Nist521PublicKey.class);
+		
+		publickeys.add(SshX509Rsa2048Sha256Rfc6187.X509V3_SSH_RSA, 
+				SshX509Rsa2048Sha256Rfc6187.class);
 		
 	}
 

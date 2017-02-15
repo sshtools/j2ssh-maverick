@@ -15,7 +15,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with J2SSH Maverick.  If not, see <http://www.gnu.org/licenses/>.
  */
 import java.io.BufferedReader;
@@ -35,6 +35,7 @@ import com.sshtools.ssh.SshClient;
 import com.sshtools.ssh.SshConnector;
 import com.sshtools.ssh.SshSession;
 import com.sshtools.ssh.components.jce.Ssh2RsaPrivateKey;
+import com.sshtools.ssh.components.jce.SshX509RsaPublicKeyRfc6187;
 import com.sshtools.ssh.components.jce.SshX509RsaSha1PublicKey;
 import com.sshtools.ssh2.Ssh2Client;
 
@@ -96,8 +97,8 @@ public class X509Connect {
 
 			RSAPrivateKey prv = (RSAPrivateKey) keystore.getKey(alias,
 					passphrase.toCharArray());
-			X509Certificate x509 = (X509Certificate) keystore
-					.getCertificate(alias);
+			X509Certificate[] x509 = (X509Certificate[]) keystore
+					.getCertificateChain(alias);
 
 			/**
 			 * Connect to the host
@@ -118,7 +119,7 @@ public class X509Connect {
 			 */
 			PublicKeyAuthentication pk = new PublicKeyAuthentication();
 
-			pk.setPublicKey(new SshX509RsaSha1PublicKey(x509));
+			pk.setPublicKey(new SshX509RsaPublicKeyRfc6187(x509));
 			pk.setPrivateKey(new Ssh2RsaPrivateKey(prv));
 
 			if (ssh.authenticate(pk) != SshAuthentication.COMPLETE) {
