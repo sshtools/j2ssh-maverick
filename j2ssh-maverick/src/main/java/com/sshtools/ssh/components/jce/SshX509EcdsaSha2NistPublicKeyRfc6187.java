@@ -121,20 +121,12 @@ public abstract class SshX509EcdsaSha2NistPublicKeyRfc6187 extends Ssh2EcdsaSha2
 			writer.writeString(getAlgorithm());
 			writer.writeInt(certs.length);
 			
-			ByteArrayWriter chain = new ByteArrayWriter();
-			try {
-				for(Certificate c : certs) {
-					chain.writeBinaryString(c.getEncoded());
-				}
-				
-				writer.writeBinaryString(chain.toByteArray());
-			} finally {
-				chain.close();
+			for(Certificate c : certs) {
+				writer.writeBinaryString(c.getEncoded());
 			}
 			
 			// No OCSP responses
 			writer.writeInt(0);
-			writer.writeInt(0); 
 			
 			return writer.toByteArray();
 		} catch (CertificateEncodingException e) {

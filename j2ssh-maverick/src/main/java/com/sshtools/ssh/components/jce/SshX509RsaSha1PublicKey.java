@@ -22,8 +22,8 @@ package com.sshtools.ssh.components.jce;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 
 import com.sshtools.ssh.SshException;
@@ -38,12 +38,12 @@ import com.sshtools.util.ByteArrayWriter;
 public class SshX509RsaSha1PublicKey extends Ssh2RsaPublicKey {
 
 	public static final String X509V3_SIGN_RSA_SHA1 = "x509v3-sign-rsa-sha1";
-	X509Certificate cert;
+	Certificate cert;
 
 	public SshX509RsaSha1PublicKey() {
 	}
 
-	public SshX509RsaSha1PublicKey(X509Certificate cert) {
+	public SshX509RsaSha1PublicKey(Certificate cert) {
 		super((RSAPublicKey) cert.getPublicKey());
 		this.cert = cert;
 	}
@@ -118,7 +118,7 @@ public class SshX509RsaSha1PublicKey extends Ssh2RsaPublicKey {
 					.getInstance(JCEAlgorithms.JCE_X509, JCEProvider
 							.getProviderForAlgorithm(JCEAlgorithms.JCE_X509));
 
-			this.cert = (X509Certificate) cf.generateCertificate(is);
+			this.cert = cf.generateCertificate(is);
 
 			if (!(cert.getPublicKey() instanceof RSAPublicKey))
 				throw new SshException(
@@ -137,7 +137,7 @@ public class SshX509RsaSha1PublicKey extends Ssh2RsaPublicKey {
 		}
 	}
 
-	public X509Certificate getCertificate() {
+	public Certificate getCertificate() {
 		return cert;
 	}
 

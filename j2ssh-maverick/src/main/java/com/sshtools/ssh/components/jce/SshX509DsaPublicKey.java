@@ -21,8 +21,8 @@
 package com.sshtools.ssh.components.jce;
 
 import java.io.ByteArrayInputStream;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.security.interfaces.DSAPublicKey;
 
 import com.sshtools.ssh.SshException;
@@ -35,12 +35,12 @@ import com.sshtools.ssh.SshException;
 public class SshX509DsaPublicKey extends Ssh2DsaPublicKey {
 
 	public static final String X509V3_SIGN_DSA = "x509v3-sign-dss";
-	X509Certificate cert;
+	Certificate cert;
 
 	public SshX509DsaPublicKey() {
 	}
 
-	public SshX509DsaPublicKey(X509Certificate cert) {
+	public SshX509DsaPublicKey(Certificate cert) {
 		super((DSAPublicKey) cert.getPublicKey());
 		this.cert = cert;
 	}
@@ -97,7 +97,7 @@ public class SshX509DsaPublicKey extends Ssh2DsaPublicKey {
 					.getInstance(JCEAlgorithms.JCE_X509, JCEProvider
 							.getProviderForAlgorithm(JCEAlgorithms.JCE_X509));
 
-			this.cert = (X509Certificate) cf.generateCertificate(is);
+			this.cert = cf.generateCertificate(is);
 
 			if (!(cert.getPublicKey() instanceof DSAPublicKey))
 				throw new SshException(
@@ -111,7 +111,7 @@ public class SshX509DsaPublicKey extends Ssh2DsaPublicKey {
 		}
 	}
 
-	public X509Certificate getCertificate() {
+	public Certificate getCertificate() {
 		return cert;
 	}
 

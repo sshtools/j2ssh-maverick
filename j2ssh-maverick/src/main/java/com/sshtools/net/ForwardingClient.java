@@ -336,7 +336,7 @@ public class ForwardingClient implements Client {
 		EventServiceImplementation
 				.getInstance()
 				.fireEvent(
-						(new Event(this,
+						(new Event(ssh,
 								J2SSHEventCodes.EVENT_FORWARDING_LOCAL_STARTED,
 								true))
 								.addAttribute(
@@ -396,7 +396,7 @@ public class ForwardingClient implements Client {
 						.getInstance()
 						.fireEvent(
 								(new Event(
-										this,
+										ssh,
 										J2SSHEventCodes.EVENT_FORWARDING_LOCAL_STARTED,
 										true))
 										.addAttribute(
@@ -1128,7 +1128,7 @@ public class ForwardingClient implements Client {
 		EventServiceImplementation
 				.getInstance()
 				.fireEvent(
-						(new Event(this,
+						(new Event(ssh,
 								J2SSHEventCodes.EVENT_FORWARDING_LOCAL_STOPPED,
 								true))
 								.addAttribute(

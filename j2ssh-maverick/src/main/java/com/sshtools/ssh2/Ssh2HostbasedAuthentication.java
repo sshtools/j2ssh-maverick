@@ -95,7 +95,7 @@ public class Ssh2HostbasedAuthentication implements AuthenticationClient {
 
 			// Format the signature correctly
 
-			sig.writeString(pub.getAlgorithm());
+			sig.writeString(prv.getAlgorithm());
 			sig.writeBinaryString(prv.sign(baw.toByteArray()));
 
 			msg.writeBinaryString(sig.toByteArray());

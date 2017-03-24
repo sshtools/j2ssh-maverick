@@ -125,7 +125,7 @@ public class Ssh2PublicKeyAuthentication extends PublicKeyAuthentication
 			try {
 				// Generate the authentication request
 				baw2.writeBoolean(isAuthenticating());
-				baw2.writeString(getPublicKey().getAlgorithm());
+				baw2.writeString(getPrivateKey().getAlgorithm());
 				baw2.writeBinaryString(encoded);
 
 				if (isAuthenticating()) {
@@ -141,7 +141,7 @@ public class Ssh2PublicKeyAuthentication extends PublicKeyAuthentication
 					ByteArrayWriter sig = new ByteArrayWriter();
 
 					try {
-						sig.writeString(getPublicKey().getAlgorithm());
+						sig.writeString(getPrivateKey().getAlgorithm());
 						sig.writeBinaryString(signature);
 						baw2.writeBinaryString(sig.toByteArray());
 					} finally {

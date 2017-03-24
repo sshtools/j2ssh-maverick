@@ -23,7 +23,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.KeyStore;
-import java.security.cert.X509Certificate;
+import java.security.cert.Certificate;
 import java.security.interfaces.RSAPrivateKey;
 
 import com.sshtools.net.SocketTransport;
@@ -36,7 +36,6 @@ import com.sshtools.ssh.SshConnector;
 import com.sshtools.ssh.SshSession;
 import com.sshtools.ssh.components.jce.Ssh2RsaPrivateKey;
 import com.sshtools.ssh.components.jce.SshX509RsaPublicKeyRfc6187;
-import com.sshtools.ssh.components.jce.SshX509RsaSha1PublicKey;
 import com.sshtools.ssh2.Ssh2Client;
 
 /**
@@ -97,8 +96,7 @@ public class X509Connect {
 
 			RSAPrivateKey prv = (RSAPrivateKey) keystore.getKey(alias,
 					passphrase.toCharArray());
-			X509Certificate[] x509 = (X509Certificate[]) keystore
-					.getCertificateChain(alias);
+			Certificate[] x509 = keystore.getCertificateChain(alias);
 
 			/**
 			 * Connect to the host
