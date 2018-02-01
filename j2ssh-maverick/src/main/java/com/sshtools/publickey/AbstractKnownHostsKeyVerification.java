@@ -464,7 +464,7 @@ public abstract class AbstractKnownHostsKeyVerification implements
 				// Try the allowed hosts by looking at the allowed hosts map
 				String name = (String) tokens.nextElement();
 
-				if ((fqn != null && name.equals(fqn))
+				if (host.equals(name) || (fqn != null && name.equals(fqn))
 						|| (ip != null && name.equals(ip))) {
 					return validateHost(names, pk);
 				}
@@ -496,7 +496,7 @@ public abstract class AbstractKnownHostsKeyVerification implements
 				// Try the allowed hosts by looking at the allowed hosts map
 				String name = (String) tokens.nextElement();
 
-				if ((fqn != null && name.equals(fqn))
+				if (host.equals(name) || (fqn != null && name.equals(fqn))
 						|| (ip != null && name.equals(ip))) {
 					return validateHost(names, pk);
 				}
