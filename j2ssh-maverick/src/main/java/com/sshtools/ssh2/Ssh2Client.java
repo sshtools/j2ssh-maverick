@@ -1099,28 +1099,28 @@ public class Ssh2Client implements SshClient {
 				+ ":"
 				+ io.getPort()
 				+ " [kex="
-				+ (transport.keyExchange == null ? "none"
+				+ (transport==null || transport.keyExchange == null ? "none"
 						: transport.keyExchange.getAlgorithm())
 				+ " hostkey="
-				+ (transport.hostkey == null ? "none" : transport.hostkey
+				+ (transport==null || transport.hostkey == null ? "none" : transport.hostkey
 						.getAlgorithm())
 				+ " client->server="
-				+ (transport.encryption == null ? "none" : transport.encryption
+				+ (transport==null || transport.encryption == null ? "none" : transport.encryption
 						.getAlgorithm())
 				+ ","
-				+ (transport.outgoingMac == null ? "none"
+				+ (transport==null || transport.outgoingMac == null ? "none"
 						: transport.outgoingMac.getAlgorithm())
 				+ ","
-				+ (transport.outgoingCompression == null ? "none"
+				+ (transport==null || transport.outgoingCompression == null ? "none"
 						: transport.outgoingCompression.getAlgorithm())
 				+ " server->client="
-				+ (transport.decryption == null ? "none" : transport.decryption
+				+ (transport==null || transport.decryption == null ? "none" : transport.decryption
 						.getAlgorithm())
 				+ ","
-				+ (transport.incomingMac == null ? "none"
+				+ (transport==null || transport.incomingMac == null ? "none"
 						: transport.incomingMac.getAlgorithm())
 				+ ","
-				+ (transport.incomingCompression == null ? "none"
+				+ (transport==null || transport.incomingCompression == null ? "none"
 						: transport.incomingCompression.getAlgorithm()) + "]";
 	}
 }

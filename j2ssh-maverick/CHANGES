@@ -7,7 +7,8 @@ J2SSH Maverick 1.5.6 - TBC
 Bug Fixes
 	o changeTerminalDimensions parameters for width and height are the wrong way around.
     o Fix NPE in ForwardingClient.SocketListener.
-
+    o Fixed NPE in Ssh2Client.toString which can occur before transport is initialised.
+    
 =================
 =  HISTORY      =
 =================
