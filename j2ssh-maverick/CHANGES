@@ -9,6 +9,7 @@ Bug Fixes
     o Fix NPE in ForwardingClient.SocketListener.
     o Fixed NPE in Ssh2Client.toString which can occur before transport is initialised.
     o Check original host name against known_hosts in addition to FQDN.
+    o Fixed certificate chain and signature encoding inline RFC 6187 X509 implementations
     
 =================
 =  HISTORY      =
