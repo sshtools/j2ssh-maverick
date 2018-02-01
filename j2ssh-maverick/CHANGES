@@ -8,6 +8,7 @@ Bug Fixes
 	o changeTerminalDimensions parameters for width and height are the wrong way around.
     o Fix NPE in ForwardingClient.SocketListener.
     o Fixed NPE in Ssh2Client.toString which can occur before transport is initialised.
+    o Check original host name against known_hosts in addition to FQDN.
     
 =================
 =  HISTORY      =
