@@ -51,28 +51,6 @@ public class SocketTransport extends Socket implements SshTransport,
 		super(hostname, port);
 
 		this.hostname = hostname;
-
-		/**
-		 * The setSendBufferSize and setReceiveBufferSize methods are 1.2 , so
-		 * we use reflection so that if we are in 1.1 the code doesn't fall
-		 * over.
-		 */
-		try {
-			Method m = Socket.class.getMethod("setSendBufferSize",
-					new Class[] { int.class });
-			m.invoke(this, new Object[] { new Integer(65535) });
-		} catch (Throwable t) {
-			// this will error in 1.1 as it is a 1.2 method, so ignore.
-		}
-
-		try {
-			Method m = Socket.class.getMethod("setReceiveBufferSize",
-					new Class[] { int.class });
-			m.invoke(this, new Object[] { new Integer(65535) });
-		} catch (Throwable t) {
-			// this will error in 1.1 as it is a 1.2 method, so ignore.
-		}
-
 	}
 
 	/**
